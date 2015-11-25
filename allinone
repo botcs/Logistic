@@ -68,7 +68,7 @@ struct edge
 {
     size_t load = 0;
     edge* back = 0;
-
+    index To;
     string ID;
     size_t capacity;
     size_t length;
@@ -94,8 +94,8 @@ struct edge
     void print(ostream& o){o<<ID<<'\t'<<capacity<<'\t'<<length<<'\t'<<phase<<'\n';}
 
 
-    edge(const string& n, size_t c, size_t l, int p) :
-        ID(n), capacity(c), length(l), phase(p) {}
+    edge(const index& t, const string& n, size_t c, size_t l, int p) :
+        To(t), ID(n), capacity(c), length(l), phase(p) {}
 };
 
 struct city
@@ -165,8 +165,8 @@ struct DataHandler{
         index& indFrom = assoc[From];
         index& indTo   = assoc[To];
 
-        edge* E = new edge{ID, capac, length, phase};
-        edge* backE = new edge{ID, capac, back_length, phase+int(length)};
+        edge* E = new edge{indTo, ID, capac, length, phase};
+        edge* backE = new edge{indFrom, ID, capac, back_length, phase+int(length)};
 
 
         ///LINKING FOR FAST DISTANCE CALCULATION
@@ -203,7 +203,7 @@ struct DataHandler{
         }
     };
 
-    city* operator[] (const index& cityIndex) {return &data[cityIndex];}
+    city& operator[] (const index& cityIndex) {return data[cityIndex];}
 
     ~DataHandler(){
     }
@@ -227,20 +227,28 @@ public:
         {
             size_t comp;
             bool validated = false;
-            city* c;
-            node(const size_t& dist, city* cityTo) : comp(dist), c(cityTo){};
+            edge* incoming = 0;
+            index cityInd = 0;
+            node(const size_t& dist, index this_city, edge* in) :
+                comp(dist), cityInd(this_city), incoming(in){};
+            node() {};
 
             bool operator < (const node& rhs) const {return comp<rhs.comp;}
         };
         priority_queue<node> openSet;
-        openSet.emplace(0,routes[client.From]);
-        auto goal = routes[client.To];
-        auto curr = openSet.top();
-        while(!openSet.empty() && curr.c != goal){
-            curr = openSet.top();
+        openSet.emplace(0,client.From);
+        auto goal = client.To;
+        node curr;
+        while(!openSet.empty() && curr.cityInd != goal){
+            node curr = openSet.top();
+
+            if(curr.incoming) curr.incoming->registerContainer(client);
+
             openSet.pop();
-            for(auto& r : curr.c->getShortestEdges(client.Time) )
-                openSet.emplace(r.first, routes[r.second]);
+            for(auto& r : routes[curr.cityInd].getShortestEdges(client.Time) )
+            {
+                openSet.emplace(r.first, r.second->To, r.second);
+            }
 
         }
 
