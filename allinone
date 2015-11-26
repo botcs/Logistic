@@ -92,12 +92,7 @@ struct edge
             else native_phase=0;
         }
 
-
-
-
         unsigned D = length + native_phase;
-        //if(native_phase>phase) D+=back->length; //container missed departure
-        //cout<<ID<<'\t'<<length<<'\t'<<phase<<'\t'<<cont_phase<<"==== "<<D<<'\n';
         return D;
     }
 
@@ -245,49 +240,60 @@ public:
     {
         struct node
         {
+            node* prev = 0;
             unsigned dist = 0;
-            edge* incoming = 0;
-            index cityInd = 0;
-            node(const unsigned& dist, index this_city, edge* in = 0) :
-                dist(dist), incoming(in), cityInd(this_city){};
-            node() {};
+            edge* incoming;
+            index cityInd;
+            node(const unsigned& dist, index this_city, edge* in = 0, node* pr = 0) :
+                prev(pr), dist(dist), incoming(in), cityInd(this_city){};
+
 
             bool operator < (const node& rhs) const {return dist>rhs.dist;}
         };
 
-
-        priority_queue<node> openSet;
+        auto comp = [](node* lhs, node* rhs){return rhs->dist < lhs->dist;};
+        priority_queue<node*, vector<node*>, decltype(comp) > openSet(comp);
         set<index> closedSet;
 
 
-        openSet.emplace(0,client.From);
+        openSet.push(new node{0,client.From});
         auto goal = client.To;
-        node curr;
+        node* curr=openSet.top();
         cout<<"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
-        while(!openSet.empty() && curr.cityInd != goal){
+        while(!openSet.empty() && curr->cityInd != goal){
             curr = openSet.top();
-            cout<<routes[curr.cityInd].name<<"\t"<<curr.dist<<"\n";
+            cout<<routes[curr->cityInd].name<<"\t"<<curr->dist<<'\t';
+            if(curr->incoming) cout<<curr->incoming->ID;
+            cout<<"\n";
             openSet.pop();
-            closedSet.insert(curr.cityInd);
-
-            if(curr.incoming) {
-                    curr.incoming->addContainer();
-
-                    client.travel.push_back(curr.incoming);
-                    client.phase=curr.dist;
+            closedSet.insert(curr->cityInd);
 
 
-            }
+            auto out = routes[curr->cityInd].getShortestEdges(curr->cityInd, curr->dist);
 
-            auto out = routes[curr.cityInd].getShortestEdges(curr.cityInd, curr.dist);
 
             for(auto r :  out)
             {
                 auto To = r.second->To;
                 if(!closedSet.count(To))
-                    openSet.emplace(r.first+curr.dist, To, r.second);
+                    openSet.push(new node{r.first+curr->dist, To, r.second, curr});
             }
 
+        }
+        cout<<"!Backtrack!!!!!!!!!!!!!\n\n";
+        if(curr->cityInd == goal){
+            auto start = client.From;
+            while(curr->cityInd != start)
+            {
+
+                cout<<routes[curr->cityInd].name<<"\t"<<curr->dist<<'\t';
+                if(curr->incoming) cout<<curr->incoming->ID;
+                cout<<"\n";
+                curr->incoming->addContainer();
+                client.travel.push_front(curr->incoming);
+                curr=curr->prev;
+
+            }
         }
 
     }
