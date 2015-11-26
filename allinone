@@ -11,6 +11,7 @@
 #include <queue>
 #include <stdexcept>
 #include <stack>
+#include <set>
 
 #define index size_t
 using namespace std;
@@ -40,14 +41,16 @@ struct Container{
     string ID;
     index From;
     index To;
-    size_t Time;
+    unsigned Time;
+
+    unsigned phase=0;
 
     list<edge*> travel;
 
     bool   solvable = true;
 
     Container(const string& i, const string& f,
-              const string& to, const size_t& ti):
+              const string& to, const unsigned& ti):
                   ID(i), From(assoc[f]), To(assoc[to]), Time(ti){}
 
     bool operator < (const Container& rhs) const{
@@ -71,31 +74,44 @@ struct edge
     index To;
     string ID;
     size_t capacity;
-    size_t length;
-    int phase;
+    unsigned length;
+    unsigned phase;
 
     bool operator < (const edge& rhs){
         return capacity/double(length) < rhs.capacity/double(rhs.length);
     }
 
-    size_t getDist(const int& cont_phase)const{
-        int native_phase = cont_phase%(length+back->length);
-        size_t D = length + phase-native_phase;
-        if(native_phase>phase) D+=back->length; //container missed departure
+    unsigned getDist(const unsigned& cont_phase)const{
+        unsigned native_phase;
+        if(cont_phase<=phase)
+            native_phase=phase-cont_phase;
+        else{
+            auto backforth=(length+back->length);
+            auto m = (cont_phase+phase)%backforth;
+            if(m) native_phase=(backforth)-m;
+            else native_phase=0;
+        }
+
+
+
+
+        unsigned D = length + native_phase;
+        //if(native_phase>phase) D+=back->length; //container missed departure
+        //cout<<ID<<'\t'<<length<<'\t'<<phase<<'\t'<<cont_phase<<"==== "<<D<<'\n';
         return D;
     }
 
-    bool registerContainer (Container& c){
-        c.travel.push_back(this);
-        phase=load/capacity*(length+back->length);
+    bool addContainer (){
+        load++;
+        if(load/capacity) phase+=(length+back->length);
         return load%capacity;
     }
 
-    void print(ostream& o){o<<ID<<'\t'<<capacity<<'\t'<<length<<'\t'<<phase<<'\n';}
+    void print(ostream& o){o<<ID<<'\t'<<capacity<<'\t'<<length<<'\t'<<phase<<"\n\n";}
 
 
-    edge(const index& t, const string& n, size_t c, size_t l, int p) :
-        To(t), ID(n), capacity(c), length(l), phase(p) {}
+    edge(const string& n, size_t c, unsigned l, unsigned p) :
+        ID(n), capacity(c), length(l), phase(p) {}
 };
 
 struct city
@@ -128,14 +144,15 @@ struct city
 
     }
 
-    vector<pair<size_t,edge*> > getShortestEdges(const int& phase)
+    vector<pair<unsigned,edge*> > getShortestEdges(const index& From, const unsigned& phase)
     {
-        vector<pair<size_t, edge*> > result(harbours.size());
+        vector<pair<unsigned, edge*> > result;
         for(auto& harb : harbours)
         {
-            size_t min_dist = harb.second.front()->getDist(phase);
-            edge* best = harb.second.front();
+            unsigned min_dist = -1;
+            edge* best = 0;
             for(auto& route : harb.second){
+                if(harb.first == From) continue;
                 auto act_dist = route->getDist(phase);
                 if(act_dist < min_dist){
                     min_dist = act_dist;
@@ -158,15 +175,15 @@ struct DataHandler{
     void printData(ostream& o);
     void insert(const string& From, const string& To,
                 const string& ID, const size_t& capac,
-                const size_t& length, const size_t& back_length,
-                const int& phase){
+                const unsigned& length, const unsigned& back_length,
+                const unsigned& phase){
 
 
         index& indFrom = assoc[From];
         index& indTo   = assoc[To];
 
-        edge* E = new edge{indTo, ID, capac, length, phase};
-        edge* backE = new edge{indFrom, ID, capac, back_length, phase+int(length)};
+        edge* E = new edge{ID, capac, length, phase};
+        edge* backE = new edge{ID, capac, back_length, phase+length};
 
 
         ///LINKING FOR FAST DISTANCE CALCULATION
@@ -201,9 +218,12 @@ struct DataHandler{
                 data.emplace_back(indFrom, backE, To);
             }
         }
+
+        E->To = indTo;
+        backE->To = indFrom;
     };
 
-    city& operator[] (const index& cityIndex) {return data[cityIndex];}
+    city& operator[] (const index& cityIndex) {return data[cityIndex-1];}
 
     ~DataHandler(){
     }
@@ -221,33 +241,51 @@ class RouteSolver
 
 public:
 
-    void regRoute(const Container& client)
+    void regRoute(Container& client)
     {
         struct node
         {
-            size_t comp;
-            bool validated = false;
+            unsigned dist = 0;
             edge* incoming = 0;
             index cityInd = 0;
-            node(const size_t& dist, index this_city, edge* in) :
-                comp(dist), cityInd(this_city), incoming(in){};
+            node(const unsigned& dist, index this_city, edge* in = 0) :
+                dist(dist), incoming(in), cityInd(this_city){};
             node() {};
 
-            bool operator < (const node& rhs) const {return comp<rhs.comp;}
+            bool operator < (const node& rhs) const {return dist>rhs.dist;}
         };
+
+
         priority_queue<node> openSet;
+        set<index> closedSet;
+
+
         openSet.emplace(0,client.From);
         auto goal = client.To;
         node curr;
+        cout<<"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
         while(!openSet.empty() && curr.cityInd != goal){
-            node curr = openSet.top();
-
-            if(curr.incoming) curr.incoming->registerContainer(client);
-
+            curr = openSet.top();
+            cout<<routes[curr.cityInd].name<<"\t"<<curr.dist<<"\n";
             openSet.pop();
-            for(auto& r : routes[curr.cityInd].getShortestEdges(client.Time) )
+            closedSet.insert(curr.cityInd);
+
+            if(curr.incoming) {
+                    curr.incoming->addContainer();
+
+                    client.travel.push_back(curr.incoming);
+                    client.phase=curr.dist;
+
+
+            }
+
+            auto out = routes[curr.cityInd].getShortestEdges(curr.cityInd, curr.dist);
+
+            for(auto r :  out)
             {
-                openSet.emplace(r.first, r.second->To, r.second);
+                auto To = r.second->To;
+                if(!closedSet.count(To))
+                    openSet.emplace(r.first+curr.dist, To, r.second);
             }
 
         }
@@ -260,7 +298,7 @@ public:
         string  ID, start, finish;
         int  amount, time;
 
-        size_t line_count = 0;
+        unsigned line_count = 0;
 
         struct contLoader{
             Container sample;
@@ -295,7 +333,7 @@ public:
                     s+="\n*********************\n";
                     throw logic_error(s);
                 }
-                PQ.emplace(amount, Container{ID, start, finish, size_t(time)});
+                PQ.emplace(amount, Container{ID, start, finish, unsigned(time)});
                 TotalAmount+=amount;
             }
         }
@@ -309,6 +347,7 @@ public:
             for(size_t i=0; i<curr.amount; i++)
             {
                 requests.push_back(curr.sample);
+
             }
         }
     }
@@ -346,6 +385,11 @@ public:
 
         }
 
+
+    }
+    void test(){
+        for(auto& r : requests)
+            regRoute(r);cout<<"\n";
 
     }
     ~RouteSolver(){
