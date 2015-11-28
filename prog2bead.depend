@@ -1,0 +1,71 @@
+# depslib dependency file v1.0
+1448209813 source:c:\users\anya\documents\csabi\prog2bead\main.cpp
+	<iostream>
+	"lifehack.h"
+
+1448210565 c:\users\anya\documents\csabi\prog2bead\lifehack.h
+	<iostream>
+	<vector>
+	<fstream>
+	<map>
+	<queue>
+	<string>
+	<sstream>
+	<list>
+	<queue>
+	<exception>
+
+1448484978 source:c:\documents and settings\rendszergazda\asztal\csabbi\prog2nagybead\main.cpp
+	<iostream>
+	"lifehack.h"
+
+1448640169 c:\documents and settings\rendszergazda\asztal\csabbi\prog2nagybead\lifehack.h
+	"data_io.h"
+
+1448640190 c:\documents and settings\rendszergazda\asztal\csabbi\prog2nagybead\data_classes.h
+
+1448640190 c:\documents and settings\rendszergazda\asztal\csabbi\prog2nagybead\data_handler.h
+	"data_classes.h"
+
+1448640169 c:\documents and settings\rendszergazda\asztal\csabbi\prog2nagybead\data_io.h
+	<iostream>
+	<vector>
+	<fstream>
+	<map>
+	<queue>
+	<string>
+	<sstream>
+	<list>
+	<queue>
+	<stdexcept>
+	<stack>
+	<set>
+	"data_handler.h"
+
+1448648987 source:c:\users\botos\documents\prog2nagybead\main.cpp
+	<iostream>
+	"path_find.h"
+
+1448743712 c:\users\botos\documents\prog2nagybead\path_find.h
+	"data_io.h"
+
+1448710143 c:\users\botos\documents\prog2nagybead\data_io.h
+	<iostream>
+	<vector>
+	<fstream>
+	<map>
+	<queue>
+	<string>
+	<sstream>
+	<list>
+	<queue>
+	<stdexcept>
+	<stack>
+	<set>
+	"data_handler.h"
+
+1448714421 c:\users\botos\documents\prog2nagybead\data_handler.h
+	"data_classes.h"
+
+1448735234 c:\users\botos\documents\prog2nagybead\data_classes.h
+
