@@ -96,3 +96,30 @@
 
 1448765886 c:\documents and settings\rendszergazda\asztal\csabbi\repo\logistic\data_classes.h
 
+1448816113 source:c:\users\botos\documents\logistic\logistic-master\main.cpp
+	<iostream>
+	"path_find.h"
+
+1448821538 c:\users\botos\documents\logistic\logistic-master\path_find.h
+	"data_io.h"
+
+1448818284 c:\users\botos\documents\logistic\logistic-master\data_io.h
+	<iostream>
+	<vector>
+	<fstream>
+	<map>
+	<queue>
+	<string>
+	<sstream>
+	<list>
+	<queue>
+	<stdexcept>
+	<stack>
+	<set>
+	"data_handler.h"
+
+1448816113 c:\users\botos\documents\logistic\logistic-master\data_handler.h
+	"data_classes.h"
+
+1448820456 c:\users\botos\documents\logistic\logistic-master\data_classes.h
+

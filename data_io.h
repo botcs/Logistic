@@ -103,6 +103,7 @@ public:
 
         while (!PQ.empty()){
             data.requests.push_back(PQ.top());
+            PQ.top().print(cout);
             PQ.pop();
         }
     }
