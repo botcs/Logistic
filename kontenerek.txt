@@ -1,1 +1,1 @@
-kacsa 10 A D 5
+kacsa 2 A H 5

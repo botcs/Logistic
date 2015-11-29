@@ -13,7 +13,9 @@ class InstanceHandler
     {
         unsigned dist;
         bool validated = false;
-        index prev;
+        index parent;
+        list<index> children;
+
         edge* incoming;
         index cityInd;
 
@@ -21,16 +23,17 @@ class InstanceHandler
         bool operator < (const node& rhs) const {return dist>rhs.dist;}
 
         node(index this_city, const unsigned& distance=-1, edge* in = 0, index pr = -1) :
-            dist(distance), prev(pr), incoming(in), cityInd(this_city){};
+            dist(distance), parent(pr), incoming(in), cityInd(this_city){};
 
-        node(): prev(0), incoming(0), cityInd(0){};
+        node(): parent(0), incoming(0), cityInd(0){};
     };
 
 
     index lastSource = -1;
     vector<node> cities;
     priority_queue<Operation> operations;
-    priority_queue<node> openSet;
+
+    vector<index> Fringe;
 
 public:
 
@@ -51,7 +54,7 @@ public:
         setOperations(DATA.requests.top());
 
 
-        //print(cout);
+        print(cout);
 
     }
 
@@ -99,6 +102,7 @@ public:
         const index& start = client.From;
         const index& goal = client.To;
 
+
         //GET MAX CAPACITY ON CURRENT SOLUTION
         index  last_invalid = cities.size();
         index curr = goal;
@@ -109,7 +113,7 @@ public:
                 max_load = currMax;
                 last_invalid = curr;
             }
-            curr = cities[curr].prev;
+            curr = cities[curr].parent;
         }
 
         //RESERVE SHIPS
@@ -120,32 +124,27 @@ public:
 
         Container remainder = client;
         remainder.stack_size = client.stack_size-max_load;
-
-
         while(curr != start){
 
 
             auto& currCity = cities[curr];
             operations.emplace(solved, currCity.incoming, cities[curr].dist);
             currCity.incoming->addContainer(max_load);
-            curr = cities[curr].prev;
+            curr = cities[curr].parent;
         }
 
 
         //IF ONE OF THE ROUTES GOT FULLY LOADED
         //SO RESTORE THE NODES TO GIVE SHORTEST ROUTE
-
         if(last_invalid != cities.size()){
-            curr = goal;
-            while(curr != cities[last_invalid].prev)
-            {
-                cities[curr].validated = false;
-                cities[curr].dist = -1;
-                curr = cities[curr].prev;
-            }
-            //NOW THE CURR IS THE LATEST VALID START THE SEARCH FROM HERE
 
+            invalidateFromSource(last_invalid);
+
+            //NOW THE CURR IS THE LATEST VALID START THE SEARCH FROM HERE
+            addLeavesToFringe(curr);
             findRoute(curr, goal);
+
+
         }
 
         if(remainder.stack_size && max_load < client.stack_size){
@@ -154,61 +153,98 @@ public:
 
     }
 
+    bool addLeavesToFringe(const index rootInd){
+        auto& root = cities[rootInd];
+        if(root.children.empty()){
+            if(root.validated ){
+                root.validated = false;
+                Fringe.push_back(root.cityInd);
+                return true;
+            }
+        } else {
+            bool hasValidLeaf = false;
+            for(auto& child : root.children)
+                hasValidLeaf = addLeavesToFringe(child);
+
+            if(!hasValidLeaf){
+                root.validated = false;
+                Fringe.push_back(root.cityInd);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    void invalidateFromSource(const index source){
+
+        auto& children = cities[source].children;
+        while(!children.empty()){
+            auto& child = children.front();
+            invalidateFromSource(child);
+            children.pop_front();
+        }
+
+        cities[source] = node(source);
+    }
 
     bool findRoute(const index& From, const index& goal){
 
 
-        for(auto& c : cities){
 
-                cout<<DATA[c.cityInd].name<<"\t"<<c.dist<<'\t';
-                if(c.incoming) cout<<c.incoming->ID;
-                cout<<"\n";
-        }
+        auto comp = [&](const index& lhs, const index& rhs)
+        {return cities[lhs].dist > cities[rhs].dist;};
+        priority_queue<index, vector<index>, decltype(comp) > openSet(comp, Fringe);
 
 
-
-
+        openSet.push(From);
         cities[From].validated = false;
-        openSet.push(cities[From]);
-        node curr = cities[From];
 
-        while(!openSet.empty() && curr.cityInd != goal){
 
-            curr = openSet.top();
+        while(!openSet.empty()){
+            node& curr = cities[openSet.top()];
             openSet.pop();
 
-            if(cities[curr.cityInd].validated) continue;
+            if(curr.cityInd == goal) {
+                Fringe = vector<index>(openSet.size());
+                while (!openSet.empty()){
+                    Fringe.push_back(openSet.top());
+                    openSet.pop();
+                }
+                return true;
+            }
+            if(curr.validated) continue;
 
             curr.validated = true;
-            cities[curr.cityInd] = curr;
 
             const auto& neighbours = DATA[curr.cityInd].getShortestEdges(curr.cityInd, curr.dist);
             for(auto n : neighbours)
             {
-                node To = cities[n.second->To];
-
-
+                node& To = cities[n.second->To];
                 if(!To.validated && To.dist > n.first+curr.dist){
+                    curr.children.push_back(To.cityInd);
 
                     To.dist     = n.first + curr.dist;
                     To.incoming = n.second;
-                    To.prev     = curr.cityInd;
+                    To.parent     = curr.cityInd;
 
-                    openSet.push(To);
+                    openSet.push(To.cityInd);
                 }
             }
 
+/*
             auto copy = openSet;
-            cout<<"TEST "<<DATA[curr.cityInd].name<<" TEST\n\n";
+            cout<<"TEST "<<DATA[curr.cityInd].name<<" TEST";
+            if(curr.incoming)cout<<" incoming: "<<curr.incoming->ID;
+            cout<<"\n\n";
             while(!copy.empty()){
-                auto test = copy.top();
+                auto test = cities[copy.top()];
                 cout<<DATA[test.cityInd].name<<"\t"<<test.dist<<'\t';
                 if(test.incoming) cout<<test.incoming->ID;
                 cout<<"\n";
                 copy.pop();
             }
             cout<<"*****************************\n\n\n";
-
+*/
         }
 
 
@@ -216,7 +252,8 @@ public:
 
 
 
-        return curr.cityInd==goal;
+
+        return false;
 
 
     }
