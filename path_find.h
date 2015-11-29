@@ -69,7 +69,7 @@ public:
             copy.pop();
         }
 
-        o<<"\nRecords: "
+        o<<"\nRecords: ";
         DATA.printData(o);
     }
 
@@ -118,13 +118,7 @@ public:
         }
 
         //RESERVE SHIPS
-        curr = goal;
 
-        Container solved = client;
-        solved.stack_size = max_load;
-
-        Container remainder = client;
-        remainder.stack_size = client.stack_size-max_load;
 
         auto& length = cities[goal].dist;
         if(client.solvable && client.Time < length){
@@ -136,6 +130,10 @@ public:
 
 
 
+        curr = goal;
+
+        Container solved = client;
+        solved.stack_size = max_load;
         while(curr != start){
 
             auto& currCity = cities[curr];
@@ -157,7 +155,9 @@ public:
 
         }
 
-        if(remainder.stack_size && max_load < client.stack_size){
+        if(max_load < client.stack_size){
+            Container remainder = client;
+            remainder.stack_size = client.stack_size-max_load;
             reserveRoute(remainder);
         } else {DATA.requests.pop_front();}
 
