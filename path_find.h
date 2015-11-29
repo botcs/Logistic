@@ -62,14 +62,14 @@ public:
 
     void print(ostream& o){
 
-        cout<<"Operations \n";
+        o<<"Operations \n";
         auto copy = operations;
         while(!copy.empty()){
             copy.top().print(o);
             copy.pop();
         }
 
-
+        o<<"\nRecords: "
         DATA.printData(o);
     }
 
