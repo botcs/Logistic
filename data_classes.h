@@ -25,13 +25,9 @@ struct Container{
               const size_t& size):
                   ID(i), From(f), To(to), Time(ti), stack_size(size){}
 
+
     bool operator < (const Container& rhs) const{
-        if(solvable != rhs.solvable)
-            return !solvable;
-        if(Time!= rhs.Time)
             return Time>rhs.Time;
-        if(From != From) return From<rhs.From;
-        return To<rhs.To;
     }
     string print()const{
         stringstream ss;

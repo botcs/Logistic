@@ -51,8 +51,10 @@ public:
         dataReaderWriter(ship_file, cargo_file, DATA);
         cout<<"File loading finished \n";
 
-        setOperations(DATA.requests.top());
-
+        ofstream commands(command_file);
+        while(!DATA.requests.empty()){
+            setOperations(DATA.requests.front());
+        }
 
         print(cout);
 
@@ -72,7 +74,7 @@ public:
     }
 
 
-    void setOperations(const Container& client){
+    void setOperations( Container& client){
         if(client.From != lastSource){
             setInstance();
             lastSource = client.From;
@@ -95,8 +97,7 @@ public:
     }
 
 
-    void reserveRoute(const Container& client){
-
+    void reserveRoute(Container client){
         size_t max_load = -1;
 
         const index& start = client.From;
@@ -124,15 +125,24 @@ public:
 
         Container remainder = client;
         remainder.stack_size = client.stack_size-max_load;
-        while(curr != start){
 
+        auto& length = cities[goal].dist;
+        if(client.solvable && client.Time < length){
+            client.solvable=false;
+            DATA.requests.push_back(client);
+            DATA.requests.pop_front();
+            return;
+        }
+
+
+
+        while(curr != start){
 
             auto& currCity = cities[curr];
             operations.emplace(solved, currCity.incoming, cities[curr].dist);
             currCity.incoming->addContainer(max_load);
             curr = cities[curr].parent;
         }
-
 
         //IF ONE OF THE ROUTES GOT FULLY LOADED
         //SO RESTORE THE NODES TO GIVE SHORTEST ROUTE
@@ -149,7 +159,7 @@ public:
 
         if(remainder.stack_size && max_load < client.stack_size){
             reserveRoute(remainder);
-        }
+        } else {DATA.requests.pop_front();}
 
     }
 
@@ -203,6 +213,17 @@ public:
         while(!openSet.empty()){
             node& curr = cities[openSet.top()];
             openSet.pop();
+            /*cout<<"BEFORE\n";
+            for(auto& c : cities){
+                cout<<DATA[c.cityInd].name<<"\t"<<c.dist<<'\t';
+                if(c.parent != -1) cout<<DATA[c.parent].name<<'\t';
+                if(c.validated) cout<<"VALID\t";
+                if(c.incoming) cout<<c.incoming->ID;
+                cout<<"\n";
+            }*/
+
+            if(curr.validated) continue;
+            curr.validated = true;
 
             if(curr.cityInd == goal) {
                 Fringe = vector<index>(openSet.size());
@@ -212,9 +233,7 @@ public:
                 }
                 return true;
             }
-            if(curr.validated) continue;
 
-            curr.validated = true;
 
             const auto& neighbours = DATA[curr.cityInd].getShortestEdges(curr.cityInd, curr.dist);
             for(auto n : neighbours)
@@ -231,8 +250,8 @@ public:
                 }
             }
 
-/*
-            auto copy = openSet;
+
+            /*auto copy = openSet;
             cout<<"TEST "<<DATA[curr.cityInd].name<<" TEST";
             if(curr.incoming)cout<<" incoming: "<<curr.incoming->ID;
             cout<<"\n\n";
@@ -243,15 +262,8 @@ public:
                 cout<<"\n";
                 copy.pop();
             }
-            cout<<"*****************************\n\n\n";
-*/
+            cout<<"*****************************\n\n\n";*/
         }
-
-
-
-
-
-
 
         return false;
 

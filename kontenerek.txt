@@ -1,1 +1,3 @@
-kacsa 2 A H 5
+libuk 1 A H 5
+kacsa 1 A H 1
+zseml 1 A H 10

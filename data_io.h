@@ -43,7 +43,7 @@ public:
 
     void loadCont(const char* file_name, DataHandler& data){
         ifstream infile (file_name);
-        if(!infile.good()){
+        if(infile.bad()){
             string exc = "wrong filename: ";
             exc+= file_name;
             exc+= "\n";
@@ -56,7 +56,7 @@ public:
         unsigned line_count = 0;
 
 
-        priority_queue<Container>& PQ = data.requests;
+        priority_queue<Container> PQ;
 
         size_t TotalAmount = 0;
         while(infile.good())
@@ -65,8 +65,8 @@ public:
             infile>>ws;
             char commentSymbol = infile.peek();
             getline(infile,ID);
+            if(commentSymbol == '#' || commentSymbol == -1) continue;
 
-            if(commentSymbol == '#') continue;
             stringstream ss (ID);
             //ONLY VALID LINES ARE ACCEPTED
             if(ss >>  ID >> amount >> start >> finish >> time){
@@ -84,7 +84,7 @@ public:
                 auto From = assoc[start];
                 auto To   = assoc[finish];
                 if(From && To)
-                    PQ.emplace(ID, From-1, To-1, unsigned(time), amount);
+                    PQ.push(Container{ID, From-1, To-1, unsigned(time), size_t(amount)});
                 else {
                     string s("\n\nERROR: Invalid parameter in line: ");
                     s+=conv(line_count);
@@ -97,15 +97,21 @@ public:
 
                 TotalAmount+=amount;
             }
+
+
         }
 
+        while (!PQ.empty()){
+            data.requests.push_back(PQ.top());
+            PQ.pop();
+        }
     }
     void loadMap(const char* file_name, DataHandler& data){
-        ifstream infile (file_name);
+        fstream infile (file_name);
         string  ID, start, finish;
         int  capac, to, back, phase;
 
-        if(!infile.good()){
+        if(infile.bad()){
             string exc = "wrong filename: ";
             exc+= file_name;
             exc+= "\n";
@@ -120,13 +126,11 @@ public:
             char commentSymbol = infile.peek();
             getline(infile,ID);
 
-            if(commentSymbol == '#') continue;
+            if(commentSymbol == '#' || commentSymbol == -1) continue;
 
             stringstream ss (ID);
             //ONLY VALID LINES ARE ACCEPTED
             if(ss >>  ID >> capac >> start >> finish >> to >> back >> phase){
-
-
                 if(capac < 1 || to < 1 || back < 1){
                     string s("\n\nERROR: Invalid parameter in line: ");
                     s+=conv(line_count);

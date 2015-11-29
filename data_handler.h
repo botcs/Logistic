@@ -7,7 +7,7 @@
 
 struct DataHandler{
 
-    priority_queue<Container> requests;
+    list<Container> requests;
 
     vector< city > cities; //Vertices with edges in list
     void printData(ostream& o){
@@ -16,11 +16,8 @@ struct DataHandler{
             vertex.print(o);
 
         o<<"CONTAINERS\n";
-        auto copy = requests;
-        while (!copy.empty())
-        {
-            copy.top().print(o);
-            copy.pop();
+        for (auto& r : requests){
+            r.print(o);
         }
     }
 
