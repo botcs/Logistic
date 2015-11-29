@@ -76,7 +76,7 @@ struct edge
 
     bool addContainer(const size_t& client_load){
         auto overload = (load+client_load)/capacity;
-        load = (load+1) % capacity;
+        load = (load + client_load) % capacity;
         if(!load) phase += overload * (length+back->length);
         return load;
     }
