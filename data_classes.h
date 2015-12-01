@@ -16,9 +16,15 @@ struct Container{
     unsigned phase = container_default_phase;
 
 
-    list<edge*> travel;
+    list<edge*> travel_route;
 
-    bool   solvable = true;
+    bool solvable(const unsigned& travel_time){
+        return travel_time<=Time;
+    }
+
+    bool been_processed(){
+        return !travel_route.empty();
+    }
 
     Container(const string& i, const index& f,
               const index& to, const unsigned& ti,
@@ -35,7 +41,7 @@ struct Container{
         return ss.str();
     }
     void print(ostream& o)const{
-        o<<ID<<'\t'<<From<<'\t'<<To<<'\t'<<Time<<'\n';
+        o<<stack_size<<'\t'<<ID<<'\t'<<From<<'\t'<<To<<'\t'<<Time<<'\n';
     }
 };
 
@@ -160,8 +166,8 @@ struct Operation
     unsigned bonus;
     unsigned amount;
 
-    Operation(const Container& client, const edge* incoming, unsigned arrival_day):
-        cont_ID(client.ID), ship_ID(incoming->ID), bonus(client.Time), amount(client.stack_size)
+    Operation(const Container* client, const edge* incoming, unsigned arrival_day):
+        cont_ID(client->ID), ship_ID(incoming->ID), bonus(client->Time), amount(client->stack_size)
     {
         day = arrival_day - incoming->length;
         //print(cout);
