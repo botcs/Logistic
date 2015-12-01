@@ -74,20 +74,20 @@ public:
     }
 
 
-    void setOperations( Container& client){
-        if(client.From != lastSource){
+    void setOperations( Container* client){
+        if(client->From != lastSource){
             setInstance();
-            lastSource = client.From;
-            cities[client.From].dist = 0;
+            lastSource = client->From;
+            cities[client->From].dist = 0;
         }
 
         //Validity  =  knows the shortest path to itself
-        if(!cities[client.To].validated){
-            if(!findRoute(client.From, client.To))
+        if(!cities[client->To].validated){
+            if(!findRoute(client->From, client->To))
             {
                 string s;
                 s+="\nPATH not found for \n";
-                s+=client.print();
+                s+=client->print();
                 s+="\n*********************\n";
                 throw logic_error(s);
             }
@@ -97,11 +97,11 @@ public:
     }
 
 
-    void reserveRoute(Container client){
+    void reserveRoute(Container* client){
         size_t max_load = -1;
 
-        const index& start = client.From;
-        const index& goal = client.To;
+        const index& start = client->From;
+        const index& goal = client->To;
 
 
         //GET MAX CAPACITY ON CURRENT SOLUTION
@@ -117,30 +117,26 @@ public:
             curr = cities[curr].parent;
         }
 
-        //RESERVE SHIPS
-
-
         auto& length = cities[goal].dist;
-        if(client.solvable && client.Time < length){
-            client.solvable=false;
-            DATA.requests.push_back(client);
-            DATA.requests.pop_front();
+        if(client->been_processed() && !client->solvable(length) && !DATA.requests.empty()){
+            DATA.requests.push(client);
+            DATA.requests.pop();
             return;
         }
 
-
-
+        //RESERVE SHIPS
         curr = goal;
-
-        Container solved = client;
-        solved.stack_size = max_load;
         while(curr != start){
 
             auto& currCity = cities[curr];
-            operations.emplace(solved, currCity.incoming, cities[curr].dist);
+            operations.emplace(client, currCity.incoming, cities[curr].dist);
             currCity.incoming->addContainer(max_load);
+            client->travel_route.push_back(currCity.incoming);
+
             curr = cities[curr].parent;
         }
+
+        DATA.solved.push(client);
 
         //IF ONE OF THE ROUTES GOT FULLY LOADED
         //SO RESTORE THE NODES TO GIVE SHORTEST ROUTE
@@ -155,11 +151,13 @@ public:
 
         }
 
-        if(max_load < client.stack_size){
-            Container remainder = client;
-            remainder.stack_size = client.stack_size-max_load;
+        if(max_load  < client->stack_size){
+            Container* remainder = new Container(*client);
+            remainder->stack_size = client->stack_size-max_load;
             reserveRoute(remainder);
-        } else {DATA.requests.pop_front();}
+        } else {
+            DATA.requests.pop();
+        }
 
     }
 
