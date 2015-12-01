@@ -7,17 +7,23 @@
 
 struct DataHandler{
 
-    list<Container> requests;
+    queue<Container*> requests;
+    queue<Container*> solved;
 
     vector< city > cities; //Vertices with edges in list
     void printData(ostream& o){
-        o<<"CITIES\n";
+        o<<"********************\n"
+         <<"CITIES\n";
         for(auto& vertex : cities)
             vertex.print(o);
 
-        o<<"CONTAINERS\n";
-        for (auto& r : requests){
-            r.print(o);
+        o<<"********************\n"
+         <<"SOLVED CONTAINERS\n"
+         <<"********************\n";
+        copy = solved;
+        while(!copy.empty()){
+            copy.front()->print(o);
+            copy.pop();
         }
     }
 
