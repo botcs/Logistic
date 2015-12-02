@@ -69,14 +69,14 @@
 
 1448735234 c:\users\botos\documents\prog2nagybead\data_classes.h
 
-1448648988 source:c:\documents and settings\rendszergazda\asztal\csabbi\repo\logistic\main.cpp
+1449045350 source:c:\documents and settings\rendszergazda\asztal\csabbi\repo\logistic\main.cpp
 	<iostream>
 	"path_find.h"
 
-1448769138 c:\documents and settings\rendszergazda\asztal\csabbi\repo\logistic\path_find.h
+1449047551 c:\documents and settings\rendszergazda\asztal\csabbi\repo\logistic\path_find.h
 	"data_io.h"
 
-1448767623 c:\documents and settings\rendszergazda\asztal\csabbi\repo\logistic\data_io.h
+1448994501 c:\documents and settings\rendszergazda\asztal\csabbi\repo\logistic\data_io.h
 	<iostream>
 	<vector>
 	<fstream>
@@ -86,15 +86,16 @@
 	<sstream>
 	<list>
 	<queue>
+	<algorithm>
 	<stdexcept>
 	<stack>
 	<set>
 	"data_handler.h"
 
-1448765402 c:\documents and settings\rendszergazda\asztal\csabbi\repo\logistic\data_handler.h
+1448994483 c:\documents and settings\rendszergazda\asztal\csabbi\repo\logistic\data_handler.h
 	"data_classes.h"
 
-1448765886 c:\documents and settings\rendszergazda\asztal\csabbi\repo\logistic\data_classes.h
+1448995000 c:\documents and settings\rendszergazda\asztal\csabbi\repo\logistic\data_classes.h
 
 1448816113 source:c:\users\botos\documents\logistic\logistic-master\main.cpp
 	<iostream>

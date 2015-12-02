@@ -10,6 +10,7 @@
 #include <sstream>
 #include <list>
 #include <queue>
+#include <algorithm>
 #include <stdexcept>
 #include <stack>
 #include <set>
@@ -56,7 +57,7 @@ public:
         unsigned line_count = 0;
 
 
-        priority_queue<Container> PQ;
+        vector<Container*> load;
 
         size_t TotalAmount = 0;
         while(infile.good())
@@ -84,7 +85,7 @@ public:
                 auto From = assoc[start];
                 auto To   = assoc[finish];
                 if(From && To)
-                    PQ.push(Container{ID, From-1, To-1, unsigned(time), size_t(amount)});
+                    load.push_back(new Container{ID, From-1, To-1, unsigned(time), size_t(amount)});
                 else {
                     string s("\n\nERROR: Invalid parameter in line: ");
                     s+=conv(line_count);
@@ -101,11 +102,23 @@ public:
 
         }
 
-        while (!PQ.empty()){
-            data.requests.push_back(PQ.top());
-            PQ.top().print(cout);
-            PQ.pop();
+        if(TotalAmount < 1) {
+            string s("\n\nERROR: end of file reached: ");
+            s+=file_name;
+            s+="\nWith line count: ";
+            s+=conv(line_count);
+            s+="\nBut no usable data was found";
+            s+="\n*********************\n";
+            throw logic_error(s);
         }
+
+        auto comp = [](const Container* lhs, const Container* rhs){
+            return (lhs->bonusTime < rhs->bonusTime ||
+                    (lhs->bonusTime == rhs->bonusTime && lhs->From < rhs->From) );
+        };
+        sort(load.begin(), load.end(), comp);
+        for (auto& p : load) data.requests.push_back(p);
+
     }
     void loadMap(const char* file_name, DataHandler& data){
         fstream infile (file_name);
@@ -145,7 +158,15 @@ public:
             }
 
         }
-
+        if(data.cities.empty()) {
+            string s("\n\nERROR: end of file reached: ");
+            s+=file_name;
+            s+="\nWith line count: ";
+            s+=conv(line_count);
+            s+="\nBut no usable data was found";
+            s+="\n*********************\n";
+            throw logic_error(s);
+        }
 
     }
 

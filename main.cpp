@@ -6,8 +6,9 @@ using namespace std;
 
 int main()
 {
+    ofstream log ("log.txt");
     try{
-        InstanceHandler inst("hajok.txt", "kontenerek.txt", "parancsok.txt");
+        InstanceHandler inst("hajok.txt", "kontenerek.txt", "parancsok.txt", true, log);
 
     }catch (exception& e)
     {

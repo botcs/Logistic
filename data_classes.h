@@ -4,47 +4,6 @@
 #define index size_t
 #define container_default_phase 0
 
-struct edge;
-struct Container{
-    string ID;
-    index From;
-    index To;
-    unsigned Time;
-
-    size_t stack_size;
-
-    unsigned phase = container_default_phase;
-
-
-    list<edge*> travel_route;
-
-    bool solvable(const unsigned& travel_time){
-        return travel_time<=Time;
-    }
-
-    bool been_processed(){
-        return !travel_route.empty();
-    }
-
-    Container(const string& i, const index& f,
-              const index& to, const unsigned& ti,
-              const size_t& size):
-                  ID(i), From(f), To(to), Time(ti), stack_size(size){}
-
-
-    bool operator < (const Container& rhs) const{
-            return Time>rhs.Time;
-    }
-    string print()const{
-        stringstream ss;
-        print(ss);
-        return ss.str();
-    }
-    void print(ostream& o)const{
-        o<<stack_size<<'\t'<<ID<<'\t'<<From<<'\t'<<To<<'\t'<<Time<<'\n';
-    }
-};
-
 struct edge
 {
     size_t load = 0;
@@ -74,13 +33,13 @@ struct edge
         return D;
     }
 
-    bool addContainer (){
+    bool reserve (){
         load=(load+1)%capacity;
         if(!load) phase+=(length+back->length);
         return load;
     }
 
-    bool addContainer(const size_t& client_load){
+    bool reserve(const size_t& client_load){
         auto overload = (load+client_load)/capacity;
         load = (load + client_load) % capacity;
         if(!load) phase += overload * (length+back->length);
@@ -103,6 +62,107 @@ struct edge
 
     edge(const string& n, size_t c, unsigned l, unsigned p) :
         ID(n), capacity(c), length(l), phase(p) {}
+};
+
+struct Container{
+    string ID;
+    index From;
+    index To;
+    unsigned bonusTime;
+
+    size_t stack_size;
+
+    unsigned travelTime = container_default_phase;
+
+
+    list<edge*> travelRoute;
+
+    bool solvable() const{
+        return travelTime<=bonusTime;
+    }
+
+    bool processed = false;
+
+    void addShip (edge* ship){
+        travelRoute.push_back(ship);
+        processed = true;
+    }
+
+    void clear() {
+        travelRoute.clear();
+        travelTime = container_default_phase;
+        processed = true;
+    }
+
+    Container* splitCont (size_t unload){
+      ///considers itself solved for a given size,
+      ///and throws back a ptr to a remainder
+      ///with clear history
+      if(unload == stack_size) return NULL;
+      Container* remainder = new Container;
+      remainder->ID = ID;
+      remainder->From = From;
+      remainder->To = To;
+      remainder->bonusTime = bonusTime;
+      remainder->stack_size = stack_size - unload;
+      stack_size = unload;
+      return remainder;
+    }
+
+    void unloadCont (size_t unload){
+        ///considers itself the remainder of the
+        ///original stack of containers
+        ///the history of the solved stack will not be
+        ///stored on the level of Containers, but can be recovered from
+        ///the Operations
+        stack_size -= unload;
+        clear();
+        processed = false;
+    }
+
+    Container(){}
+    Container(const string& i, const index& f,
+              const index& to, const unsigned& ti,
+              const size_t& size):
+                  ID(i), From(f), To(to), bonusTime(ti), stack_size(size){}
+
+
+    string print()const{
+        stringstream ss;
+        print(ss, true);
+        return ss.str();
+    }
+    void print(ostream& o, bool fail = false)const{
+
+        o << '{' << ID << '}';
+
+        if(fail){
+             o<< "\n\tadressed with bonus Time: " << bonusTime
+              << "\n\tWith stack size: " << stack_size
+              << "\n\tFrom city with index: " << From
+              << "\n\tTo with index: " << To << "\n";
+            return;
+        }
+
+        if(!travelRoute.empty()){
+            if(solvable()) o << "\t*BONUS* (";
+            else           o << "\tOut of time (";
+
+            o << travelTime << " of " << bonusTime << ")";
+
+            o << " Backtracking: \n";
+            int indent = 0;
+            for(auto e : travelRoute){
+                for(int i = 0; i< indent; i++) o << ' ';
+                o << " -->[" << e->ID << "]\n";
+                indent++;
+            }
+            o << '\n';
+        } else {
+            o << " Have not been solved yet\n";
+        }
+
+    }
 };
 
 struct city
@@ -167,7 +227,7 @@ struct Operation
     unsigned amount;
 
     Operation(const Container* client, const edge* incoming, unsigned arrival_day):
-        cont_ID(client->ID), ship_ID(incoming->ID), bonus(client->Time), amount(client->stack_size)
+        cont_ID(client->ID), ship_ID(incoming->ID), bonus(client->bonusTime), amount(client->stack_size)
     {
         day = arrival_day - incoming->length;
         //print(cout);

@@ -9,6 +9,10 @@ class InstanceHandler
 {
 
     DataHandler DATA;
+
+    bool show;
+    ostream& logOutput;
+
     struct node
     {
         unsigned dist;
@@ -47,49 +51,61 @@ public:
         }
     }
 
-    InstanceHandler(const char* ship_file, const char* cargo_file, const char* command_file){
+    InstanceHandler(const char* ship_file, const char* cargo_file, const char* command_file,
+                    bool show_process = true, ostream& o = cout) :
+        show(show_process), logOutput (o)
+    {
         dataReaderWriter(ship_file, cargo_file, DATA);
-        cout<<"File loading finished \n";
+        logOutput<<"File loading finished \n";
+
+        //DATA.print(logOutput);
 
         ofstream commands(command_file);
         while(!DATA.requests.empty()){
             setOperations(DATA.requests.front());
+            DATA.requests.pop_front();
         }
 
-        print(cout);
+        //print(logOutput);
 
     }
 
     void print(ostream& o){
 
+        o<<"\nRecords: ";
+        DATA.print(o);
+
         o<<"Operations \n";
+        printOp(o);
+
+    }
+    void printOp(ostream& o){
         auto copy = operations;
         while(!copy.empty()){
             copy.top().print(o);
             copy.pop();
         }
-
-        o<<"\nRecords: ";
-        DATA.printData(o);
     }
 
 
     void setOperations( Container* client){
+        if (show){
+            logOutput << "\nCURRENT CLIENT:\n";
+            client->print(logOutput, false);
+        }
         if(client->From != lastSource){
             setInstance();
             lastSource = client->From;
             cities[client->From].dist = 0;
         }
 
-        //Validity  =  knows the shortest path to itself
+        //Validated  =  knows the shortest path to itself
         if(!cities[client->To].validated){
             if(!findRoute(client->From, client->To))
             {
-                string s;
-                s+="\nPATH not found for \n";
-                s+=client->print();
-                s+="\n*********************\n";
-                throw logic_error(s);
+                logOutput <<"\nPATH not found for ";
+                client->print(logOutput, true);
+                logOutput <<"\n*********************\n";
             }
         }
 
@@ -98,15 +114,17 @@ public:
 
 
     void reserveRoute(Container* client){
-        size_t max_load = -1;
 
         const index& start = client->From;
         const index& goal = client->To;
+        client -> travelTime = cities[goal].dist;
+
 
 
         //GET MAX CAPACITY ON CURRENT SOLUTION
         index  last_invalid = cities.size();
-        index curr = goal;
+        index  curr = goal;
+        size_t max_load = -1;
         while(curr != start)
         {
             auto currMax = cities[curr].incoming->getFreeSize();
@@ -117,10 +135,12 @@ public:
             curr = cities[curr].parent;
         }
 
-        auto& length = cities[goal].dist;
-        if(client->been_processed() && !client->solvable(length) && !DATA.requests.empty()){
-            DATA.requests.push(client);
-            DATA.requests.pop();
+        Container* remainder = client->splitCont(max_load);
+
+        if( !client->processed && !client->solvable() ){
+            client->clear();
+            DATA.requests.push_back(client);
+            DATA.requests.pop_front();
             return;
         }
 
@@ -130,16 +150,16 @@ public:
 
             auto& currCity = cities[curr];
             operations.emplace(client, currCity.incoming, cities[curr].dist);
-            currCity.incoming->addContainer(max_load);
-            client->travel_route.push_back(currCity.incoming);
+            currCity.incoming->reserve(max_load);
+            client->addShip(currCity.incoming);
 
             curr = cities[curr].parent;
         }
 
-        DATA.solved.push(client);
 
         //IF ONE OF THE ROUTES GOT FULLY LOADED
         //SO RESTORE THE NODES TO GIVE SHORTEST ROUTE
+        /**
         if(last_invalid != cities.size()){
 
             invalidateFromSource(last_invalid);
@@ -147,20 +167,13 @@ public:
             //NOW THE CURR IS THE LATEST VALID START THE SEARCH FROM HERE
             addLeavesToFringe(curr);
             findRoute(curr, goal);
+        }**/
 
-
+        if(remainder){
+            DATA.requests.push_front(remainder);
         }
-
-        if(max_load  < client->stack_size){
-            Container* remainder = new Container(*client);
-            remainder->stack_size = client->stack_size-max_load;
-            reserveRoute(remainder);
-        } else {
-            DATA.requests.pop();
-        }
-
     }
-
+    /**Not fast as complex
     bool addLeavesToFringe(const index rootInd){
         auto& root = cities[rootInd];
         if(root.children.empty()){
@@ -194,8 +207,16 @@ public:
 
         cities[source] = node(source);
     }
+    */
 
     bool findRoute(const index& From, const index& goal){
+
+        if(show){
+            logOutput << "\n\n****************************************\n"
+                      << "shortest path finding initialized from: "
+                      << DATA[From].name<<" to: "<<DATA[goal].name<<'\n'
+                      << "****************************************\n\n";
+        }
 
 
 
@@ -211,23 +232,34 @@ public:
         while(!openSet.empty()){
             node& curr = cities[openSet.top()];
             openSet.pop();
-            /*cout<<"BEFORE\n";
-            for(auto& c : cities){
-                cout<<DATA[c.cityInd].name<<"\t"<<c.dist<<'\t';
-                if(c.parent != -1) cout<<DATA[c.parent].name<<'\t';
-                if(c.validated) cout<<"VALID\t";
-                if(c.incoming) cout<<c.incoming->ID;
-                cout<<"\n";
+
+            /*if(show){
+                logOutput<<"  Before mapping neighbours\n";
+                for(auto& c : cities){
+                    logOutput<<DATA[c.cityInd].name<<'\t';
+
+                    if(c.parent != -1) logOutput<<DATA[c.parent].name<<'\t';
+                        else logOutput<<"-\t";
+                    if(c.incoming) logOutput<<c.incoming->ID<<'\t';
+                        else logOutput<<"-\t";
+                    if(c.incoming) logOutput<<c.incoming->length<<'\t';
+                        else logOutput<<"-\t";
+                    if(c.validated) logOutput<<"VALID\t";
+                        else logOutput<<"-\t";
+                    if(c.dist != -1) logOutput<<c.dist;
+                        else logOutput<<"-\t";
+                    logOutput<<"\n";
+                }
             }*/
 
             if(curr.validated) continue;
             curr.validated = true;
 
             if(curr.cityInd == goal) {
-                Fringe = vector<index>(openSet.size());
-                while (!openSet.empty()){
-                    Fringe.push_back(openSet.top());
-                    openSet.pop();
+                if(show){
+                    logOutput<<"Found goal: "<<DATA[curr.cityInd].name
+                             <<" Final Distance: "<<curr.dist<<"\n"
+                             << "\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
                 }
                 return true;
             }
@@ -237,7 +269,7 @@ public:
             for(auto n : neighbours)
             {
                 node& To = cities[n.second->To];
-                if(!To.validated && To.dist > n.first+curr.dist){
+                if(To.dist > n.first+curr.dist){
                     curr.children.push_back(To.cityInd);
 
                     To.dist     = n.first + curr.dist;
@@ -248,19 +280,35 @@ public:
                 }
             }
 
+            if (show){
+                logOutput<<"****************************************\n";
+                logOutput<<"TEST VERTEX "<<DATA[curr.cityInd].name<<"\n";
+                logOutput<<"\n  After mapping neighbours\n";
+                for(auto& c : cities){
+                    logOutput<<DATA[c.cityInd].name<<'\t';
+                    if(c.parent != -1) logOutput<<DATA[c.parent].name<<'\t';
+                        else logOutput<<"-\t";
+                    if(c.incoming) logOutput<<c.incoming->ID<<"\t";
+                        else logOutput<<"-\t";
+                    if(c.validated) logOutput<<"VALID\t";
+                        else logOutput<<"-\t";
+                    logOutput<<c.dist;
+                    logOutput<<"\n";
+                }
+                logOutput<<"---------------------------------\n";
+                logOutput<<"Actual priority queue\n";
+                auto copy = openSet;
+                while(!copy.empty()){
 
-            /*auto copy = openSet;
-            cout<<"TEST "<<DATA[curr.cityInd].name<<" TEST";
-            if(curr.incoming)cout<<" incoming: "<<curr.incoming->ID;
-            cout<<"\n\n";
-            while(!copy.empty()){
-                auto test = cities[copy.top()];
-                cout<<DATA[test.cityInd].name<<"\t"<<test.dist<<'\t';
-                if(test.incoming) cout<<test.incoming->ID;
-                cout<<"\n";
-                copy.pop();
+                    auto test = cities[copy.top()];
+                    logOutput<<DATA[test.cityInd].name<<"\t"<<test.dist<<'\t';
+                    if(test.incoming) logOutput<<test.incoming->ID;
+                    logOutput<<"\n";
+                    copy.pop();
+                }
+                logOutput<<"****************************************\n";
             }
-            cout<<"*****************************\n\n\n";*/
+
         }
 
         return false;

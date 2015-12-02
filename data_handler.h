@@ -7,24 +7,36 @@
 
 struct DataHandler{
 
-    queue<Container*> requests;
-    queue<Container*> solved;
+    list<Container*> requests;
+    list<Container*> solved;
 
     vector< city > cities; //Vertices with edges in list
-    void printData(ostream& o){
+    void print(ostream& o){
         o<<"********************\n"
          <<"CITIES\n";
         for(auto& vertex : cities)
             vertex.print(o);
 
-        o<<"********************\n"
-         <<"SOLVED CONTAINERS\n"
-         <<"********************\n";
-        copy = solved;
-        while(!copy.empty()){
-            copy.front()->print(o);
-            copy.pop();
+        if(!solved.empty()){
+
+            o<<"********************\n"
+             <<"SOLVED REQUESTS\n"
+             <<"********************\n";
+            for(auto s : solved){
+                s->print(o);
+                o << "\n";
+            }
         }
+        if(!requests.empty()){
+            o<<"********************\n"
+             <<"UNSOLVED REQUESTS\n"
+             <<"********************\n";
+            for(auto us : requests){
+                us->print(o);
+                o << "\n";
+            }
+        }
+
     }
 
     void insert(const string& From, const string& To,

@@ -1,0 +1,151 @@
+File loading finished 
+
+CURRENT CLIENT:
+{SECOND} Have not been solved yet
+
+
+****************************************
+shortest path finding initialized from: A to: C
+****************************************
+
+Actual priority queue
+****************************************
+****************************************
+TEST VERTEX A
+
+  After mapping neighbours
+A	-	-	VALID	0
+B	A	A-B	-	1
+C	A	EXTRA	-	3
+D	-	-	-	4294967295
+E	-	-	-	4294967295
+F	-	-	-	4294967295
+G	-	-	-	4294967295
+H	-	-	-	4294967295
+I	-	-	-	4294967295
+X	-	-	-	4294967295
+---------------------------------
+****************************************
+TEST VERTEX B
+
+  After mapping neighbours
+A	-	-	VALID	0
+B	A	A-B	VALID	1
+C	B	B-C	-	2
+D	-	-	-	4294967295
+E	-	-	-	4294967295
+F	-	-	-	4294967295
+G	-	-	-	4294967295
+H	-	-	-	4294967295
+I	-	-	-	4294967295
+X	B	SIDE	-	4
+---------------------------------
+Found goal: C Final Distance: 2
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+****************************************
+shortest path finding initialized from: A to: C
+****************************************
+
+Actual priority queue
+****************************************
+****************************************
+TEST VERTEX A
+
+  After mapping neighbours
+A	-	-	VALID	0
+B	A	A-B	-	3
+C	A	EXTRA	-	3
+D	-	-	-	4294967295
+E	-	-	-	4294967295
+F	-	-	-	4294967295
+G	-	-	-	4294967295
+H	-	-	-	4294967295
+I	-	-	-	4294967295
+X	-	-	-	4294967295
+---------------------------------
+****************************************
+TEST VERTEX B
+
+  After mapping neighbours
+A	-	-	VALID	0
+B	A	A-B	VALID	3
+C	A	EXTRA	-	3
+D	-	-	-	4294967295
+E	-	-	-	4294967295
+F	-	-	-	4294967295
+G	-	-	-	4294967295
+H	-	-	-	4294967295
+I	-	-	-	4294967295
+X	B	SIDE	-	6
+---------------------------------
+Found goal: C Final Distance: 3
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+CURRENT CLIENT:
+{SECOND}	*BONUS* (2 of 10) Backtracking: 
+ -->[B-C]
+  -->[A-B]
+
+
+
+****************************************
+shortest path finding initialized from: A to: C
+****************************************
+
+Actual priority queue
+****************************************
+****************************************
+TEST VERTEX A
+
+  After mapping neighbours
+A	-	-	VALID	0
+B	A	A-B	-	3
+C	A	EXTRA	-	1006
+D	-	-	-	4294967295
+E	-	-	-	4294967295
+F	-	-	-	4294967295
+G	-	-	-	4294967295
+H	-	-	-	4294967295
+I	-	-	-	4294967295
+X	B	SIDE	-	6
+---------------------------------
+Found goal: C Final Distance: 1006
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+CURRENT CLIENT:
+{SECOND}	*BONUS* (3 of 10) Backtracking: 
+ -->[B-C]
+  -->[A-B]
+   -->[EXTRA]
+
+
+
+****************************************
+shortest path finding initialized from: A to: C
+****************************************
+
+Actual priority queue
+****************************************
+****************************************
+TEST VERTEX A
+
+  After mapping neighbours
+A	-	-	VALID	0
+B	A	A-B	-	3
+C	A	EXTRA	-	2009
+D	-	-	-	4294967295
+E	-	-	-	4294967295
+F	-	-	-	4294967295
+G	-	-	-	4294967295
+H	-	-	-	4294967295
+I	-	-	-	4294967295
+X	B	SIDE	-	6
+---------------------------------
+Found goal: C Final Distance: 2009
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
