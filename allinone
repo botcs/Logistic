@@ -1,0 +1,416 @@
+#ifndef LIFEHACK_H_INCLUDED
+#define LIFEHACK_H_INCLUDED
+#include <iostream>
+#include <vector>
+#include <fstream>
+#include <map>
+#include <queue>
+#include <string>
+#include <sstream>
+#include <list>
+#include <queue>
+#include <stdexcept>
+#include <stack>
+#include <set>
+
+#define index size_t
+using namespace std;
+
+string conv (double i)
+{
+    stringstream ss;
+    string s;
+    ss<<i;
+    ss>>s;
+    return s;
+}
+
+double conv (string i)
+{
+    stringstream ss;
+    double s;
+    ss<<i;
+    ss>>s;
+    return s;
+}
+
+map<string, index> assoc;
+struct edge;
+
+struct Container{
+    string ID;
+    index From;
+    index To;
+    unsigned Time;
+
+    unsigned phase=0;
+
+    list<edge*> travel;
+
+    bool   solvable = true;
+
+    Container(const string& i, const string& f,
+              const string& to, const unsigned& ti):
+                  ID(i), From(assoc[f]), To(assoc[to]), Time(ti){}
+
+    bool operator < (const Container& rhs) const{
+        if(solvable != rhs.solvable)
+            return !solvable;
+        if(Time!= rhs.Time)
+            return Time>rhs.Time;
+        if(From != From) return From<rhs.From;
+        return To<rhs.To;
+    }
+
+    void print(ostream& o){
+        o<<ID<<'\t'<<From<<'\t'<<To<<'\t'<<Time<<'\n';
+    }
+};
+
+struct edge
+{
+    size_t load = 0;
+    edge* back = 0;
+    index To;
+    string ID;
+    size_t capacity;
+    unsigned length;
+    unsigned phase;
+
+    bool operator < (const edge& rhs){
+        return capacity/double(length) < rhs.capacity/double(rhs.length);
+    }
+
+    unsigned getDist(const unsigned& cont_phase)const{
+        unsigned native_phase;
+        if(cont_phase<=phase)
+            native_phase=phase-cont_phase;
+        else{
+            auto backforth=(length+back->length);
+            auto m = (cont_phase+phase)%backforth;
+            if(m) native_phase=(backforth)-m;
+            else native_phase=0;
+        }
+
+        unsigned D = length + native_phase;
+        return D;
+    }
+
+    bool addContainer (){
+        load++;
+        if(load/capacity) phase+=(length+back->length);
+        return load%capacity;
+    }
+
+    void print(ostream& o){o<<ID<<'\t'<<capacity<<'\t'<<length<<'\t'<<phase<<"\n\n";}
+
+
+    edge(const string& n, size_t c, unsigned l, unsigned p) :
+        ID(n), capacity(c), length(l), phase(p) {}
+};
+
+struct city
+{
+    string name;
+
+    city(const index& i, edge* e, const string& _name) : name(_name) {
+        harbours[i] = list<edge*> {e};
+    }
+
+    city* predecessor = NULL;
+
+    map< index, list<edge *> > harbours;
+
+    list<edge *>& operator [] (const index& i) {return harbours[i];}
+
+    void print(ostream& o){
+        string separator = "************************************************\n";
+        o<<separator<<name;
+        o<<"\nTo\tID\tcap\tlength\tphase\n"<<separator;
+        for(auto& p : harbours){
+            o<<p.first;
+            for(auto& route : p.second){
+                o<<'\t';
+                route->print(o);
+            }
+            o<<"\n";
+        }
+        o<<"\n\n";
+
+    }
+
+    vector<pair<unsigned,edge*> > getShortestEdges(const index& From, const unsigned& phase)
+    {
+        vector<pair<unsigned, edge*> > result;
+        for(auto& harb : harbours)
+        {
+            unsigned min_dist = -1;
+            edge* best = 0;
+            for(auto& route : harb.second){
+                if(harb.first == From) continue;
+                auto act_dist = route->getDist(phase);
+                if(act_dist < min_dist){
+                    min_dist = act_dist;
+                    best     = route;
+                }
+            }
+            result.emplace_back(min_dist, best);
+        }
+        return result;
+    }
+
+    ~city(){
+    }
+    //const list<edge *>& operator [] (const index& i) const {return harbours[i];}
+};
+
+struct DataHandler{
+
+    vector < city > data; //Vertices with edges in list
+    void printData(ostream& o);
+    void insert(const string& From, const string& To,
+                const string& ID, const size_t& capac,
+                const unsigned& length, const unsigned& back_length,
+                const unsigned& phase){
+
+
+        index& indFrom = assoc[From];
+        index& indTo   = assoc[To];
+
+        edge* E = new edge{ID, capac, length, phase};
+        edge* backE = new edge{ID, capac, back_length, phase+length};
+
+
+        ///LINKING FOR FAST DISTANCE CALCULATION
+        E->back=backE;
+        backE->back=E;
+
+        if (indFrom && indTo){
+
+            data[indFrom-1][indTo].push_back(E);
+            data[indTo-1][indFrom].push_back(backE);
+        } else {
+            //SOME OF THE CITIES ARE NOT FOUND
+            //ONLY WORKS WHEN RETURN EDGES ARE GUARANTEED
+            if(!indFrom && !indTo) {
+                indFrom=data.size()+1;
+                indTo  =data.size()+2;
+
+                data.emplace_back(indTo, E, From);
+                data.emplace_back(indFrom, backE, To);
+
+            } else
+
+            if(!indFrom && indTo) {
+                indFrom=data.size() + 1;
+                data.emplace_back(indTo, E, From);
+                data[indTo-1][indFrom].push_back(backE);
+            } else
+
+            if(!indTo && indFrom){
+                indTo = data.size() + 1;
+                data[indFrom-1][indTo].push_back(E);
+                data.emplace_back(indFrom, backE, To);
+            }
+        }
+
+        E->To = indTo;
+        backE->To = indFrom;
+    };
+
+    city& operator[] (const index& cityIndex) {return data[cityIndex-1];}
+
+    ~DataHandler(){
+    }
+
+
+};
+
+
+
+class RouteSolver
+{
+
+    DataHandler routes;
+    vector<Container> requests;
+
+public:
+
+    void regRoute(Container& client)
+    {
+        struct node
+        {
+            node* prev = 0;
+            unsigned dist = 0;
+            edge* incoming;
+            index cityInd;
+            node(const unsigned& dist, index this_city, edge* in = 0, node* pr = 0) :
+                prev(pr), dist(dist), incoming(in), cityInd(this_city){};
+
+
+            bool operator < (const node& rhs) const {return dist>rhs.dist;}
+        };
+
+        auto comp = [](node* lhs, node* rhs){return rhs->dist < lhs->dist;};
+        priority_queue<node*, vector<node*>, decltype(comp) > openSet(comp);
+        set<index> closedSet;
+
+
+        openSet.push(new node{0,client.From});
+        auto goal = client.To;
+        node* curr=openSet.top();
+        cout<<"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
+        while(!openSet.empty() && curr->cityInd != goal){
+            curr = openSet.top();
+            cout<<routes[curr->cityInd].name<<"\t"<<curr->dist<<'\t';
+            if(curr->incoming) cout<<curr->incoming->ID;
+            cout<<"\n";
+            openSet.pop();
+            closedSet.insert(curr->cityInd);
+
+
+            auto out = routes[curr->cityInd].getShortestEdges(curr->cityInd, curr->dist);
+
+
+            for(auto r :  out)
+            {
+                auto To = r.second->To;
+                if(!closedSet.count(To))
+                    openSet.push(new node{r.first+curr->dist, To, r.second, curr});
+            }
+
+        }
+        cout<<"!Backtrack!!!!!!!!!!!!!\n\n";
+        if(curr->cityInd == goal){
+            auto start = client.From;
+            while(curr->cityInd != start)
+            {
+
+                cout<<routes[curr->cityInd].name<<"\t"<<curr->dist<<'\t';
+                if(curr->incoming) cout<<curr->incoming->ID;
+                cout<<"\n";
+                curr->incoming->addContainer();
+                client.travel.push_front(curr->incoming);
+                curr=curr->prev;
+
+            }
+        }
+
+    }
+
+    void print(ostream& o){routes.printData(o);}
+    void loadCont(const char* file_name){
+        ifstream infile (file_name);
+        string  ID, start, finish;
+        int  amount, time;
+
+        unsigned line_count = 0;
+
+        struct contLoader{
+            Container sample;
+            size_t amount;
+            contLoader(const size_t& _amount, const Container& _sample):
+                sample(_sample), amount(_amount) {};
+
+            bool operator < (const contLoader& rhs) const {
+               return sample<rhs.sample;
+            }
+        };
+        priority_queue<contLoader> PQ;
+        size_t TotalAmount = 0;
+        while(infile.good())
+        {
+            line_count++;
+            infile>>ws;
+            char commentSymbol = infile.peek();
+            getline(infile,ID);
+
+            if(commentSymbol == '#') continue;
+            stringstream ss (ID);
+            //ONLY VALID LINES ARE ACCEPTED
+            if(ss >>  ID >> amount >> start >> finish >> time){
+
+
+                if(time < 0 || amount < 1){
+                    string s("\n\nERROR: Invalid parameter in line: ");
+                    s+=conv(line_count);
+                    s+="\nIN FILE: ";
+                    s+=file_name;
+                    s+="\n*********************\n";
+                    throw logic_error(s);
+                }
+                PQ.emplace(amount, Container{ID, start, finish, unsigned(time)});
+                TotalAmount+=amount;
+            }
+        }
+
+        requests.reserve(TotalAmount);
+        while(!PQ.empty())
+        {
+            auto curr = PQ.top();
+            PQ.pop();
+
+            for(size_t i=0; i<curr.amount; i++)
+            {
+                requests.push_back(curr.sample);
+
+            }
+        }
+    }
+    void loadMap(const char* file_name){
+        ifstream infile (file_name);
+        string  ID, start, finish;
+        int  capac, to, back, phase;
+
+        size_t line_count = 0;
+        while(infile.good())
+        {
+            line_count++;
+            infile>>ws;
+            char commentSymbol = infile.peek();
+            getline(infile,ID);
+
+            if(commentSymbol == '#') continue;
+
+            stringstream ss (ID);
+            //ONLY VALID LINES ARE ACCEPTED
+            if(ss >>  ID >> capac >> start >> finish >> to >> back >> phase){
+
+
+                if(capac < 1 || to < 1 || back < 1){
+                    string s("\n\nERROR: Invalid parameter in line: ");
+                    s+=conv(line_count);
+                    s+="\nIN FILE: ";
+                    s+=file_name;
+                    s+="\n*********************\n";
+                    throw logic_error(s);
+                }
+
+                routes.insert(start, finish, ID, capac, to, back, phase);
+            }
+
+        }
+
+
+    }
+    void test(){
+        for(auto& r : requests)
+            regRoute(r);cout<<"\n";
+
+    }
+    ~RouteSolver(){
+
+    }
+
+
+} RS;
+
+
+void DataHandler::printData(ostream& o){
+
+    for(auto& vertex : data)
+        vertex.print(o);
+
+}
+
+#endif // LIFEHACK_H_INCLUDED
