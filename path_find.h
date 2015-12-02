@@ -144,7 +144,17 @@ public:
             curr = curr->parent;
         }
 
-        //IF ROUTE
+        //IF ONE OF THE SHIPS GETS FULL
+        if(last_invalid){
+            invalidateFromSource(last_invalid);
+            PQ copy;
+            while (!Fringe.empty()){
+                auto candidate = Fringe.get();
+                if(nodes[candidate].parent)
+                    copy.put(candidate, nodes[candidate]);
+            }
+        }
+
 
         if(remainder){
             DATA.requests.push_front(remainder);
