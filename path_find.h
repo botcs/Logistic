@@ -18,8 +18,8 @@ class InstanceHandler
 
     struct node{
         shared_ptr<edge> incoming;
-        string parent;
-        list<string > children;
+        node* parent;
+        list<node*> children;
         unsigned distance;
         bool valid = false;
     };
@@ -38,7 +38,7 @@ class InstanceHandler
             elements.pop();
             return best_item;
         }
-    };
+    } Fringe;
     unordered_map<string, node> nodes;
 
 public:
@@ -111,17 +111,18 @@ public:
 
 
         //GET MAX CAPACITY ON CURRENT SOLUTION
-        string last_invalid;
-        string curr = goal;
+        node* last_invalid = NULL;
+        node* curr = &nodes[goal];
+        node* start_ptr = &nodes[start];
         size_t max_load = -1;
-        while(curr != start)
+        while(curr != start_ptr)
         {
-            auto currMax = nodes[curr].incoming->getFreeSize();
+            auto currMax = curr->incoming->getFreeSize();
             if(currMax<=max_load){
                 max_load = currMax;
                 last_invalid = curr;
             }
-            curr = nodes[curr].parent;
+            curr = curr->parent;
         }
 
         c remainder = client->splitCont(max_load);
@@ -134,16 +135,16 @@ public:
         }
 
         //RESERVE SHIPS
-        curr = goal;
-        while(curr != start){
+        curr = &nodes[goal];
+        while(curr != start_ptr){
+            operations.emplace(client, curr->incoming, curr->distance);
+            curr->incoming->reserve(max_load);
+            client->addShip(curr->incoming);
 
-            auto& currCity = nodes[curr];
-            operations.emplace(client, currCity.incoming, nodes[curr].distance);
-            currCity.incoming->reserve(max_load);
-            client->addShip(currCity.incoming);
-
-            curr = nodes[curr].parent;
+            curr = curr->parent;
         }
+
+        //IF ROUTE
 
         if(remainder){
             DATA.requests.push_front(remainder);
@@ -151,31 +152,34 @@ public:
     }
 
 
-    void invalidateFromSource(const string& source){
+    void invalidateFromSource(node* source){
 
-        auto& children = nodes[source].children;
+        auto& children = source->children;
         while(!children.empty()){
             auto& child = children.front();
             invalidateFromSource(child);
             children.pop_front();
         }
-
-        nodes[source].valid = false;
+        source->valid = false;
     }
 
     bool findRoute(const string& start, const string& goal){
-        PQ Fringe;
         Fringe.put(start, 0);
-        nodes[start].parent = start;
+        nodes[start].parent = NULL;
         while (!Fringe.empty()){
             auto curr = Fringe.get();
-            if(curr == goal) break;
+            if(curr == goal) return true;
 
             for (auto& e : DATA[curr].getShortestEdges(nodes[curr].distance)){
+                if(!nodes[e.first->To].valid || nodes[e.first->To].distance > e.second){
+                    Fringe.put(e.first->To, e.second);
+                    nodes[e.first->To].distance = e.second;
+                }
+
 
             }
         }
-
+        return false;
     }
 };
 

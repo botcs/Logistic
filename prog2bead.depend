@@ -154,3 +154,33 @@
 
 1449061424 c:\users\botos\desktop\logistic-container-pointer\data_classes.h
 
+1449085511 source:c:\users\botos\documents\logistic\main.cpp
+	<iostream>
+	"path_find.h"
+
+1449088345 c:\users\botos\documents\logistic\path_find.h
+	"data_io.h"
+
+1449085511 c:\users\botos\documents\logistic\data_io.h
+	<iostream>
+	<vector>
+	<fstream>
+	<unordered_map>
+	<map>
+	<memory>
+	<queue>
+	<string>
+	<sstream>
+	<list>
+	<queue>
+	<algorithm>
+	<stdexcept>
+	<stack>
+	<set>
+	"data_handler.h"
+
+1449085511 c:\users\botos\documents\logistic\data_handler.h
+	"data_classes.h"
+
+1449088124 c:\users\botos\documents\logistic\data_classes.h
+

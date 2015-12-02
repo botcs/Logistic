@@ -187,9 +187,9 @@ struct city
 
     }
 
-    vector<pair<unsigned, e> > getShortestEdges(const unsigned& phase)
+    vector<pair< e, unsigned> > getShortestEdges(const unsigned& phase)
     {
-        vector<pair<unsigned, e> > result;
+        vector<pair< e, unsigned> > result;
         for(auto& harb : harbours)
         {
             unsigned min_dist = -1;
@@ -201,7 +201,7 @@ struct city
                     best     = route;
                 }
             }
-            result.emplace_back(min_dist, best);
+            result.emplace_back(best, min_dist);
         }
         return result;
     }
