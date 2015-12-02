@@ -4,12 +4,13 @@
 #include <iostream>
 #include <vector>
 #include <fstream>
-#include <map>
+#include <unordered_map>
 #include <queue>
 #include <string>
 #include <sstream>
 #include <list>
 #include <queue>
+#include <algorithm>
 #include <stdexcept>
 #include <stack>
 #include <set>
@@ -37,7 +38,6 @@ double conv (string i)
 
 class dataReaderWriter
 {
-    map<string, index> assoc;
 
 public:
 
@@ -56,7 +56,7 @@ public:
         unsigned line_count = 0;
 
 
-        priority_queue<Container> PQ;
+        auto& load = data.requests;
 
         size_t TotalAmount = 0;
         while(infile.good())
@@ -81,10 +81,8 @@ public:
                     s+="\n*********************\n";
                     throw logic_error(s);
                 }
-                auto From = assoc[start];
-                auto To   = assoc[finish];
-                if(From && To)
-                    PQ.push(Container{ID, From-1, To-1, unsigned(time), size_t(amount)});
+                if(data.cities.count(start) && data.cities.count(finish))
+                    load.push_back(make_shared<Container>(ID, start, finish, unsigned(time), size_t(amount)));
                 else {
                     string s("\n\nERROR: Invalid parameter in line: ");
                     s+=conv(line_count);
@@ -101,11 +99,22 @@ public:
 
         }
 
-        while (!PQ.empty()){
-            data.requests.push_back(PQ.top());
-            PQ.top().print(cout);
-            PQ.pop();
+        if(TotalAmount < 1) {
+            string s("\n\nERROR: end of file reached: ");
+            s+=file_name;
+            s+="\nWith line count: ";
+            s+=conv(line_count);
+            s+="\nBut no usable data was found";
+            s+="\n*********************\n";
+            throw logic_error(s);
         }
+
+        auto comp = [](const shared_ptr<Container> lhs, const shared_ptr<Container> rhs){
+            return (lhs->bonusTime < rhs->bonusTime ||
+                    (lhs->bonusTime == rhs->bonusTime && lhs->From < rhs->From) );
+        };
+        sort(load.begin(), load.end(), comp);
+
     }
     void loadMap(const char* file_name, DataHandler& data){
         fstream infile (file_name);
@@ -145,7 +154,15 @@ public:
             }
 
         }
-
+        if(data.cities.empty()) {
+            string s("\n\nERROR: end of file reached: ");
+            s+=file_name;
+            s+="\nWith line count: ";
+            s+=conv(line_count);
+            s+="\nBut no usable data was found";
+            s+="\n*********************\n";
+            throw logic_error(s);
+        }
 
     }
 

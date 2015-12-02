@@ -3,24 +3,28 @@
 
 #include "data_classes.h"
 
-
+using c = shared_ptr<Container>;
 
 struct DataHandler{
 
-    queue<Container*> requests;
-    queue<Container*> solved;
+    list<c> requests;
+    queue<c> solved;
 
-    vector< city > cities; //Vertices with edges in list
+    unordered_map< string, city > cities; //Vertices with edges in list
     void printData(ostream& o){
         o<<"********************\n"
          <<"CITIES\n";
-        for(auto& vertex : cities)
-            vertex.print(o);
+        for(auto& vertex : cities){
+
+            o<<"************************************************\n";
+            o<<vertex.first;
+            vertex.second.print(o);
+        }
 
         o<<"********************\n"
          <<"SOLVED CONTAINERS\n"
          <<"********************\n";
-        copy = solved;
+        auto copy = solved;
         while(!copy.empty()){
             copy.front()->print(o);
             copy.pop();
@@ -30,55 +34,24 @@ struct DataHandler{
     void insert(const string& From, const string& To,
                 const string& ID, const size_t& capac,
                 const unsigned& length, const unsigned& back_length,
-                const unsigned& phase, map<string, index>& assoc){
+                const unsigned& phase){
 
 
-        index& indFrom = assoc[From];
-        index& indTo   = assoc[To];
 
-        edge* E = new edge{ID, capac, length, phase};
-        edge* backE = new edge{ID, capac, back_length, phase+length};
-
+        shared_ptr<edge> E = make_shared<edge>(ID, capac, length, phase);
+        shared_ptr<edge> backE = make_shared<edge>(ID, capac, back_length, phase+length);
 
         ///LINKING FOR FAST DISTANCE CALCULATION
         E->back=backE;
         backE->back=E;
 
-        if (indFrom && indTo){
+        cities[From][To].push_back(E);
+        cities[To][From].push_back(backE);
 
-            cities[indFrom-1][indTo-1].push_back(E);
-            cities[indTo-1][indFrom-1].push_back(backE);
-        } else {
-            //SOME OF THE CITIES ARE NOT FOUND
-            //ONLY WORKS WHEN RETURN EDGES ARE GUARANTEED
 
-            if(!indFrom && !indTo) {
-                indFrom=cities.size()+1;
-                indTo  =cities.size()+2;
-
-                cities.emplace_back(indTo-1, E, From);
-                cities.emplace_back(indFrom-1, backE, To);
-
-            } else
-
-            if(!indFrom && indTo) {
-                indFrom=cities.size() + 1;
-                cities.emplace_back(indTo-1, E, From);
-                cities[indTo-1][indFrom-1].push_back(backE);
-            } else
-
-            if(!indTo && indFrom){
-                indTo = cities.size() + 1;
-                cities[indFrom-1][indTo-1].push_back(E);
-                cities.emplace_back(indFrom-1, backE, To);
-            }
-        }
-
-        E->To = indTo-1;
-        backE->To = indFrom-1;
     };
 
-    city& operator[] (const index& cityIndex) {return cities[cityIndex];}
+    city& operator[] (const string& cityIndex) {return cities[cityIndex];}
 
     ~DataHandler(){
     }

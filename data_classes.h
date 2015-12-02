@@ -4,11 +4,12 @@
 #define index size_t
 #define container_default_phase 0
 
+#include <memory>
 struct edge;
 struct Container{
     string ID;
-    index From;
-    index To;
+    string From;
+    string To;
     unsigned Time;
 
     size_t stack_size;
@@ -16,7 +17,7 @@ struct Container{
     unsigned phase = container_default_phase;
 
 
-    list<edge*> travel_route;
+    list<shared_ptr<edge> > travel_route;
 
     bool solvable(const unsigned& travel_time){
         return travel_time<=Time;
@@ -26,8 +27,8 @@ struct Container{
         return !travel_route.empty();
     }
 
-    Container(const string& i, const index& f,
-              const index& to, const unsigned& ti,
+    Container(const string& i, const string& f,
+              const string& to, const unsigned& ti,
               const size_t& size):
                   ID(i), From(f), To(to), Time(ti), stack_size(size){}
 
@@ -48,8 +49,8 @@ struct Container{
 struct edge
 {
     size_t load = 0;
-    edge* back = 0;
-    index To;
+    shared_ptr<edge> back;
+    string To;
     string ID;
     size_t capacity;
     unsigned length;
@@ -105,22 +106,17 @@ struct edge
         ID(n), capacity(c), length(l), phase(p) {}
 };
 
+using e = shared_ptr<edge>;
+
 struct city
 {
-    string name;
+    unordered_map< string, list<e> > harbours;
 
-    city(const index& i, edge* e, const string& _name) : name(_name) {
-        harbours[i] = list<edge*> {e};
-    }
-
-    map< index, list<edge *> > harbours;
-
-    list<edge *>& operator [] (const index& i) {return harbours[i];}
+    list<e>& operator [] (const string& i) {return harbours[i];}
 
     void print(ostream& o){
-        string separator = "************************************************\n";
-        o<<separator<<name;
-        o<<"\nTo\tID\tcap\tlength\tphase\n"<<separator;
+        o<<"\nTo\tID\tcap\tlength\tphase\n"
+         <<"************************************************\n";
         for(auto& p : harbours){
             o<<p.first;
             for(auto& route : p.second){
@@ -133,15 +129,14 @@ struct city
 
     }
 
-    vector<pair<unsigned,edge*> > getShortestEdges(const index& From, const unsigned& phase)
+    vector<pair<unsigned, e> > getShortestEdges(const unsigned& phase)
     {
-        vector<pair<unsigned, edge*> > result;
+        vector<pair<unsigned, e> > result;
         for(auto& harb : harbours)
         {
             unsigned min_dist = -1;
-            edge* best = 0;
+            e best;
             for(auto& route : harb.second){
-                if(harb.first == From) continue;
                 auto act_dist = route->getDist(phase);
                 if(act_dist < min_dist){
                     min_dist = act_dist;
@@ -166,7 +161,7 @@ struct Operation
     unsigned bonus;
     unsigned amount;
 
-    Operation(const Container* client, const edge* incoming, unsigned arrival_day):
+    Operation(const Container* client, const e incoming, unsigned arrival_day):
         cont_ID(client->ID), ship_ID(incoming->ID), bonus(client->Time), amount(client->stack_size)
     {
         day = arrival_day - incoming->length;
