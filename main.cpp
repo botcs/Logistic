@@ -8,7 +8,7 @@ int main()
 {
     ofstream log ("log.txt");
     try{
-        InstanceHandler inst("hajok.txt", "kontenerek.txt", "parancsok.txt", true, cout);
+        InstanceHandler inst("hajok.txt", "kontenerek.txt", "parancsok.txt", false, cout);
 
     }catch (exception& e)
     {

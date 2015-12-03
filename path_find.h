@@ -43,6 +43,10 @@ class InstanceHandler
             elements.pop();
             return best_item;
         }
+
+        inline void clear() {
+            elements = priority_queue<PQElement, vector<PQElement>, std::greater<PQElement> > ();
+        }
     } Fringe;
     unordered_map<string, node> nodes;
 
@@ -86,10 +90,41 @@ public:
         }
     }
 
+    void printNodes(ostream& o){
+        o<<"\n\tMAPPED NODES \n";
+        o<<"\t**********\n";
+        for(auto n : nodes){
+            logOutput<< n.first << "\t";
+            auto& c = n.second;
+
+            if(c.incoming) logOutput<<c.incoming->ID<<"\t";
+                else logOutput<<"-\t";
+            if(c.state == node::valid) logOutput<<"VALID\t";
+            else if (c.state == node::visited) logOutput<<"!\t";
+            else logOutput<<"-\t";
+            logOutput<<c.distance;
+            logOutput<<"\n";
+        }
+    }
+
+    void printFringe(ostream& o){
+        o<<"\n\tFRINGE\n";
+        o<<"\t***********\n";
+        auto cp = Fringe.elements;
+        while(!cp.empty()){
+            logOutput<<cp.top().first<<'\t'<<cp.top().second<<'\n';
+            cp.pop();
+        }
+    }
+
     void setInstance(c client){
         last_source = last_valid = client->From;
         nodes.clear();
         nodes.reserve(DATA.cities.size());
+
+        nodes[client->From].distance = 0;
+        nodes[client->From].ID = client->From;
+        Fringe.put(client->From, 0);
     }
     void setOperations( c client){
 
@@ -97,9 +132,7 @@ public:
             setInstance(client);
         //Valid  =  knows the shortest path to itself
         if(nodes[client->To].state != node::valid){
-            nodes[client->From].distance = 0;
-            nodes[client->From].ID = client->From;
-            if(!findRoute(last_valid, client->To))
+            if(!findRoute(client->To))
             {
                 logOutput <<"\nPATH not found for ";
                 client->print(logOutput, true);
@@ -132,6 +165,7 @@ public:
             auto currMax = curr->incoming->getFreeSize();
             if(currMax<=max_load){
                 max_load = currMax;
+                curr->state = node::unvisited;
                 last_invalid = curr;
             }
             curr = curr->parent;
@@ -162,67 +196,49 @@ public:
 
         //IF ONE OF THE SHIPS GETS FULL
         if(last_invalid){
-            auto last_valid_ptr = last_invalid->parent;
-            last_valid = last_valid_ptr->ID;
-            invalidateFromSource(last_invalid);
 
-            /*PQ copy;
-            while (!Fringe.empty()){
-                const auto& candidate = Fringe.elements.top();
-                if(nodes[candidate.second].state == node::valid)
-                    copy.put(candidate.second, candidate.first);
-                Fringe.elements.pop();
-            }*/
-            Fringe = PQ();
-            addLeavesToFringe(last_valid_ptr);
+            cout<<"\n\nBefore\n";
+            printFringe(cout);
+            last_valid = last_invalid->parent->ID;
+            Fringe.clear();
+            cout<<"\n\nADDING LEAVES\n"
+                <<"--------------------\n\n";
+            addLeavesToFringe(last_invalid->parent);
+            cout<<"--------------------";
+            cout<<"\n\nAFTER\n";
+            printFringe(cout);
         }
-
 
         if(remainder){
             DATA.requests.push_front(remainder);
         }
     }
 
-
-    void invalidateFromSource(node* source){
-
-        auto& children = source->children;
-        while(!children.empty()){
-            auto& child = children.front();
-            invalidateFromSource(child);
-            children.pop_front();
-        }
-        source->state = node::unvisited;
-    }
-
-    bool addLeavesToFringe(node* root){
-        if(root->children.empty()){
-            if(root->state == node::valid){
-                root->state = node::visited;
-                Fringe.put(root->ID, root->distance);
-                return true;
-            }
-        } else {
+    bool addLeavesToFringe(node* root, int indent = 0){
+        auto& test = *root;
+        if(root->state != node::unvisited){
             bool hasValidLeaf = false;
             for(auto& child : root->children)
-                hasValidLeaf = addLeavesToFringe(child);
+                if(addLeavesToFringe(child, indent+1)) hasValidLeaf = true;
+                for (int i = 0; i < indent; i++) logOutput<<' ';
+                if(indent) logOutput << "-> ";
+                else       logOutput << "SOURCE: ";
+                logOutput << root-> ID;
             if(!hasValidLeaf){
+                //IF A NODE IS VALID, THEN THE PATHFINDER WILL SKIP
+                logOutput<< " ADDED\n";
                 root->state = node::visited;
-                cout<<"leaf shit: "<<root->ID<<'\t'<<root->distance<<'\n';
                 Fringe.put(root->ID, root->distance);
                 return true;
-            }
+            } else logOutput<< "\n";
         }
+
         return false;
     }
 
-    bool findRoute(const string& start, const string& goal){
-
-
-        Fringe.put(start, nodes[start].distance);
+    bool findRoute(const string& goal){
 
         while (!Fringe.empty()){
-
 
             auto curr = Fringe.get();
             auto& curr_node = nodes[curr];
@@ -231,25 +247,12 @@ public:
                 logOutput<<"\n\n****************************************\n";
                 logOutput<<"TEST VERTEX "<<curr<<"\n";
                 logOutput<<"****************************************\n";
-                logOutput<<"\n\tMAPPED NODES \n";
-                logOutput<<"\t**********\n";
-                for(auto n : nodes){
-                    logOutput<< n.first << "\t";
-                    auto& c = n.second;
-
-                    if(c.incoming) logOutput<<c.incoming->ID<<"\t";
-                        else logOutput<<"-\t";
-                    if(c.state == node::valid) logOutput<<"VALID\t";
-                    else if (c.state == node::visited) logOutput<<"!\t";
-                    else logOutput<<"-\t";
-                    logOutput<<c.distance;
-                    logOutput<<"\n";
-                }
-
+                printNodes(logOutput);
             }
 
             if(curr_node.state == node::valid) continue;
             curr_node.state = node::valid;
+            curr_node.children.clear();
             if(curr == goal)
                 return true;
 
@@ -260,16 +263,11 @@ public:
             }
 
             for (auto& e : DATA[curr].getShortestEdges(curr_node.distance)){
-                if(show) {
-                    logOutput<<"distance: "<<e.first->getDist(curr_node.distance)<<'\t';
-                    e.first->print(logOutput);
 
-                }
                 auto& neighbour = nodes[e.first->To];
                 auto nb_dist = curr_node.distance + e.second;
                 if(neighbour.state == node::unvisited ||
                     (neighbour.state == node::visited && neighbour.distance > nb_dist)){
-                    if(show) logOutput<<"ADDED!\n\n";
                     Fringe.put(e.first->To, nb_dist);
                     neighbour.ID       = e.first->To;
                     neighbour.state    = node::visited;
@@ -277,18 +275,15 @@ public:
                     neighbour.incoming = e.first;
                     neighbour.parent   = &curr_node;
                     curr_node.children.push_back(&neighbour);
-                }
-            }
+                    if(show) logOutput<<"+++ ";
+                } else if(show) logOutput<<"    ";
 
-            if(show){
-                logOutput<<"\n\tFRINGE\n";
-                logOutput<<"\t***********\n";
-                auto cp = Fringe.elements;
-                while(!cp.empty()){
-                    logOutput<<cp.top().first<<'\t'<<cp.top().second<<'\n';
-                    cp.pop();
+                if(show) {
+                    logOutput<<"distance: "<<nb_dist<<'\t';
+                    e.first->print(logOutput);
                 }
             }
+            if(show) printFringe(logOutput);
         }
         return false;
     }
