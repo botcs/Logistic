@@ -56,12 +56,12 @@ struct edge
         return ss.str();
     }
     void print(ostream& o){
-        o<<ID<<'\t'<<capacity<<'\t'<<length<<'\t'<<phase<<"\n\n";
+        o<<To<<'\t'<<ID<<'\t'<<capacity<<'\t'<<length<<'\t'<<phase<<"\n\n";
     }
 
 
-    edge(const string& n, size_t c, unsigned l, unsigned p) :
-        ID(n), capacity(c), length(l), phase(p) {}
+    edge(const string& to, const string& n, size_t c, unsigned l, unsigned p) :
+        To(to), ID(n), capacity(c), length(l), phase(p) {}
 };
 
 struct Container{
@@ -84,7 +84,7 @@ struct Container{
     bool processed = false;
 
     void addShip (shared_ptr<edge> ship){
-        travelRoute.push_back(ship);
+        travelRoute.push_front(ship);
         processed = true;
     }
 
@@ -98,7 +98,8 @@ struct Container{
       ///considers itself solved for a given size,
       ///and throws back a ptr to a remainder
       ///with clear history
-      if(unload == stack_size) return NULL;
+      if(unload >= stack_size)
+        return NULL;
       shared_ptr<Container> remainder = make_shared<Container>();
       remainder->ID = ID;
       remainder->From = From;
@@ -134,19 +135,19 @@ struct Container{
     }
     void print(ostream& o, bool fail = false)const{
 
-        o << '{' << ID << '}';
+        o << '{' << ID << '}'
+          << " With stack size: " << stack_size;
 
         if(fail){
              o<< "\n\tadressed with bonus Time: " << bonusTime
-              << "\n\tWith stack size: " << stack_size
               << "\n\tFrom: " << From
               << "\n\tTo: " << To << "\n";
             return;
         }
 
         if(!travelRoute.empty()){
-            if(solvable()) o << "\t*BONUS* (";
-            else           o << "\tOut of time (";
+            if(solvable()) o << "\n\t*BONUS* (";
+            else           o << "\n\tOut of time (";
 
             o << travelTime << " of " << bonusTime << ")";
 
@@ -159,7 +160,7 @@ struct Container{
             }
             o << '\n';
         } else {
-            o << " Have not been solved yet\n";
+            o << " not solved yet\n";
         }
 
     }
@@ -176,9 +177,7 @@ struct city
         o<<"\nTo\tID\tcap\tlength\tphase\n"
          <<"************************************************\n";
         for(auto& p : harbours){
-            o<<p.first;
             for(auto& route : p.second){
-                o<<'\t';
                 route->print(o);
             }
             o<<"\n";
@@ -201,6 +200,7 @@ struct city
                     best     = route;
                 }
             }
+
             result.emplace_back(best, min_dist);
         }
         return result;

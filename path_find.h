@@ -17,11 +17,16 @@ class InstanceHandler
     priority_queue<Operation> operations;
 
     struct node{
+        string ID;
         shared_ptr<edge> incoming;
-        node* parent;
+        node* parent = NULL;
         list<node*> children;
-        unsigned distance;
-        bool valid = false;
+        unsigned distance = -1;
+        enum{
+            unvisited = 0,
+            visited,
+            valid
+        } state = unvisited;
     };
 
     struct PQ{
@@ -55,14 +60,11 @@ public:
         dataReaderWriter(ship_file, cargo_file, DATA);
         logOutput<<"File loading finished \n";
 
-        //DATA.print(logOutput);
-
+        DATA.printCities(logOutput);
         ofstream commands(command_file);
         while(!DATA.requests.empty()){
             setOperations(DATA.requests.front());
-            DATA.requests.pop_front();
         }
-
         //print(logOutput);
 
     }
@@ -89,7 +91,9 @@ public:
 
 
         //Valid  =  knows the shortest path to itself
-        if(!nodes[client->To].valid){
+        if(nodes[client->To].state != node::valid){
+            nodes[client->From].distance = 0;
+            nodes[client->From].ID = client->From;
             if(!findRoute(client->From, client->To))
             {
                 logOutput <<"\nPATH not found for ";
@@ -103,19 +107,22 @@ public:
 
 
     void reserveRoute(c client){
+        DATA.requests.pop_front();
 
-        const string& start = client->From;
         const string& goal = client->To;
         client -> travelTime = nodes[goal].distance;
 
-
+        /*logOutput<<"NODES:\n\n";
+        for(auto& n : nodes){
+            logOutput << n.first << "\t" << n.second.valid << "\t"
+            << n.second.distance << "\t" << n.second.incoming << "\n";
+        }*/
 
         //GET MAX CAPACITY ON CURRENT SOLUTION
         node* last_invalid = NULL;
         node* curr = &nodes[goal];
-        node* start_ptr = &nodes[start];
         size_t max_load = -1;
-        while(curr != start_ptr)
+        while(curr -> parent)
         {
             auto currMax = curr->incoming->getFreeSize();
             if(currMax<=max_load){
@@ -134,9 +141,10 @@ public:
             return;
         }
 
+
         //RESERVE SHIPS
         curr = &nodes[goal];
-        while(curr != start_ptr){
+        while(curr -> parent){
             operations.emplace(client, curr->incoming, curr->distance);
             curr->incoming->reserve(max_load);
             client->addShip(curr->incoming);
@@ -144,15 +152,22 @@ public:
             curr = curr->parent;
         }
 
+        DATA.solved.push_back(client);
+
+
         //IF ONE OF THE SHIPS GETS FULL
         if(last_invalid){
+            auto last_valid = last_invalid->parent;
             invalidateFromSource(last_invalid);
+
             PQ copy;
             while (!Fringe.empty()){
-                auto candidate = Fringe.get();
-                if(nodes[candidate].parent)
-                    copy.put(candidate, nodes[candidate]);
+                const auto& candidate = Fringe.elements.top();
+                if(nodes[candidate.second].state == node::valid)
+                    copy.put(candidate.second, candidate.first);
+                Fringe.elements.pop();
             }
+            addBranchesToFringe(last_valid);
         }
 
 
@@ -170,23 +185,92 @@ public:
             invalidateFromSource(child);
             children.pop_front();
         }
-        source->valid = false;
+        source->state = node::unvisited;
+    }
+
+    void addBranchesToFringe(node* root){
+
+            if(root->state){
+                Fringe.put(root->ID, root->distance);
+                for(auto& child : root->children)
+                    addBranchesToFringe(child);
+            }
+
+
     }
 
     bool findRoute(const string& start, const string& goal){
-        Fringe.put(start, 0);
-        nodes[start].parent = NULL;
-        while (!Fringe.empty()){
-            auto curr = Fringe.get();
-            if(curr == goal) return true;
 
-            for (auto& e : DATA[curr].getShortestEdges(nodes[curr].distance)){
-                if(!nodes[e.first->To].valid || nodes[e.first->To].distance > e.second){
-                    Fringe.put(e.first->To, e.second);
-                    nodes[e.first->To].distance = e.second;
+
+        Fringe.put(start, nodes[start].distance);
+        nodes[start].state = node::unvisited;
+
+        while (!Fringe.empty()){
+
+
+            auto curr = Fringe.get();
+            auto& curr_node = nodes[curr];
+
+            if(show){
+                logOutput<<"\n\n****************************************\n";
+                logOutput<<"TEST VERTEX "<<curr<<"\n";
+                logOutput<<"****************************************\n";
+                logOutput<<"\n\tMAPPED NODES \n";
+                logOutput<<"\t**********\n";
+                for(auto n : nodes){
+                    logOutput<< n.first << "\t";
+                    auto& c = n.second;
+
+                    if(c.incoming) logOutput<<c.incoming->ID<<"\t";
+                        else logOutput<<"-\t";
+                    if(c.state == node::valid) logOutput<<"VALID\t";
+                    else if (c.state == node::visited) logOutput<<"!\t";
+                    else logOutput<<"-\t";
+                    logOutput<<c.distance;
+                    logOutput<<"\n";
                 }
 
+            }
 
+            if(curr_node.state == node::valid) continue;
+            curr_node.state = node::valid;
+            if(curr == goal)
+                return true;
+
+
+            if(show){
+                logOutput<<"\n\n\tNEIGHBOUR EDGES \n";
+                logOutput<<"\t**********\n";
+            }
+
+            for (auto& e : DATA[curr].getShortestEdges(curr_node.distance)){
+                if(show) {
+                    logOutput<<"distance: "<<e.first->getDist(curr_node.distance)<<'\t';
+                    e.first->print(logOutput);
+
+                }
+                auto& neighbour = nodes[e.first->To];
+                auto nb_dist = curr_node.distance + e.second;
+                if(neighbour.state == node::unvisited ||
+                    (neighbour.state == node::visited && neighbour.distance > nb_dist)){
+                    Fringe.put(e.first->To, nb_dist);
+                    neighbour.ID       = e.first->To;
+                    neighbour.state    = node::visited;
+                    neighbour.distance = nb_dist;
+                    neighbour.incoming = e.first;
+                    neighbour.parent   = &curr_node;
+                    curr_node.children.push_back(&neighbour);
+                }
+            }
+
+            if(show){
+                logOutput<<"\n\tFRINGE\n";
+                logOutput<<"\t***********\n";
+                auto cp = Fringe.elements;
+                while(!cp.empty()){
+                    logOutput<<cp.top().first<<'\t'<<cp.top().second<<'\n';
+                    cp.pop();
+                }
             }
         }
         return false;
