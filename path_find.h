@@ -64,13 +64,12 @@ public:
         dataReaderWriter(ship_file, cargo_file, DATA);
         logOutput<<"File loading finished \n";
 
-        DATA.printCities(logOutput);
+
+
         ofstream commands(command_file);
         while(!DATA.requests.empty()){
             setOperations(DATA.requests.front());
         }
-        //print(logOutput);
-
     }
 
     void print(ostream& o){
@@ -150,11 +149,6 @@ public:
         const string& goal = client->To;
         client -> travelTime = nodes[goal].distance;
 
-        /*logOutput<<"NODES:\n\n";
-        for(auto& n : nodes){
-            logOutput << n.first << "\t" << n.second.valid << "\t"
-            << n.second.distance << "\t" << n.second.incoming << "\n";
-        }*/
 
         //GET MAX CAPACITY ON CURRENT SOLUTION
         node* last_invalid = NULL;
@@ -173,7 +167,7 @@ public:
 
         c remainder = client->splitCont(max_load);
 
-        if( !client->processed && !client->solvable() ){
+        if( !client->processed && !client->solvable()  && !DATA.requests.empty()){
             client->clear();
             DATA.requests.push_back(client);
             DATA.requests.pop_front();
@@ -197,16 +191,9 @@ public:
         //IF ONE OF THE SHIPS GETS FULL
         if(last_invalid){
 
-            cout<<"\n\nBefore\n";
-            printFringe(cout);
             last_valid = last_invalid->parent->ID;
             Fringe.clear();
-            cout<<"\n\nADDING LEAVES\n"
-                <<"--------------------\n\n";
             addLeavesToFringe(last_invalid->parent);
-            cout<<"--------------------";
-            cout<<"\n\nAFTER\n";
-            printFringe(cout);
         }
 
         if(remainder){
@@ -220,17 +207,13 @@ public:
             bool hasValidLeaf = false;
             for(auto& child : root->children)
                 if(addLeavesToFringe(child, indent+1)) hasValidLeaf = true;
-                for (int i = 0; i < indent; i++) logOutput<<' ';
-                if(indent) logOutput << "-> ";
-                else       logOutput << "SOURCE: ";
-                logOutput << root-> ID;
             if(!hasValidLeaf){
                 //IF A NODE IS VALID, THEN THE PATHFINDER WILL SKIP
-                logOutput<< " ADDED\n";
+
                 root->state = node::visited;
                 Fringe.put(root->ID, root->distance);
                 return true;
-            } else logOutput<< "\n";
+            }
         }
 
         return false;
@@ -246,7 +229,8 @@ public:
             if(show){
                 logOutput<<"\n\n****************************************\n";
                 logOutput<<"TEST VERTEX "<<curr<<"\n";
-                logOutput<<"****************************************\n";
+                logOutput<<"****************************************\n"
+                         <<"\n\tBEFORE VISITING NEIGHBOURS\n";
                 printNodes(logOutput);
             }
 
@@ -283,7 +267,10 @@ public:
                     e.first->print(logOutput);
                 }
             }
-            if(show) printFringe(logOutput);
+            if(show) {
+                logOutput<<"\n\tAFTER VISITING NEIGHBOURS\n";
+                printFringe(logOutput);
+            }
         }
         return false;
     }
