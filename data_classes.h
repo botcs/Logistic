@@ -56,7 +56,7 @@ struct edge
         return ss.str();
     }
     void print(ostream& o){
-        o<<To<<'\t'<<ID<<'\t'<<capacity<<'\t'<<length<<'\t'<<phase<<"\n\n";
+        o<<To<<'\t'<<ID<<'\t'<<capacity<<'\t'<<length<<'\t'<<phase<<"\n";
     }
 
 

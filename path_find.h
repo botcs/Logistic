@@ -13,7 +13,6 @@ class InstanceHandler
     bool show;
     ostream& logOutput;
 
-    string lastSource;
     priority_queue<Operation> operations;
 
     struct node{
@@ -28,6 +27,7 @@ class InstanceHandler
             valid
         } state = unvisited;
     };
+
 
     struct PQ{
         typedef pair<unsigned, string> PQElement;
@@ -46,12 +46,12 @@ class InstanceHandler
     } Fringe;
     unordered_map<string, node> nodes;
 
+    string last_valid;
+    string last_source;
+
 public:
 
-    void setInstance(){
-        nodes.clear();
-        nodes.reserve(DATA.cities.size());
-    }
+
 
     InstanceHandler(const char* ship_file, const char* cargo_file, const char* command_file,
                     bool show_process = true, ostream& o = cout) :
@@ -86,15 +86,20 @@ public:
         }
     }
 
-
+    void setInstance(c client){
+        last_source = last_valid = client->From;
+        nodes.clear();
+        nodes.reserve(DATA.cities.size());
+    }
     void setOperations( c client){
 
-
+        if(client->From != last_source)
+            setInstance(client);
         //Valid  =  knows the shortest path to itself
         if(nodes[client->To].state != node::valid){
             nodes[client->From].distance = 0;
             nodes[client->From].ID = client->From;
-            if(!findRoute(client->From, client->To))
+            if(!findRoute(last_valid, client->To))
             {
                 logOutput <<"\nPATH not found for ";
                 client->print(logOutput, true);
@@ -157,17 +162,19 @@ public:
 
         //IF ONE OF THE SHIPS GETS FULL
         if(last_invalid){
-            auto last_valid = last_invalid->parent;
+            auto last_valid_ptr = last_invalid->parent;
+            last_valid = last_valid_ptr->ID;
             invalidateFromSource(last_invalid);
 
-            PQ copy;
+            /*PQ copy;
             while (!Fringe.empty()){
                 const auto& candidate = Fringe.elements.top();
                 if(nodes[candidate.second].state == node::valid)
                     copy.put(candidate.second, candidate.first);
                 Fringe.elements.pop();
-            }
-            addBranchesToFringe(last_valid);
+            }*/
+            Fringe = PQ();
+            addLeavesToFringe(last_valid_ptr);
         }
 
 
@@ -188,22 +195,31 @@ public:
         source->state = node::unvisited;
     }
 
-    void addBranchesToFringe(node* root){
-
-            if(root->state){
+    bool addLeavesToFringe(node* root){
+        if(root->children.empty()){
+            if(root->state == node::valid){
+                root->state = node::visited;
                 Fringe.put(root->ID, root->distance);
-                for(auto& child : root->children)
-                    addBranchesToFringe(child);
+                return true;
             }
-
-
+        } else {
+            bool hasValidLeaf = false;
+            for(auto& child : root->children)
+                hasValidLeaf = addLeavesToFringe(child);
+            if(!hasValidLeaf){
+                root->state = node::visited;
+                cout<<"leaf shit: "<<root->ID<<'\t'<<root->distance<<'\n';
+                Fringe.put(root->ID, root->distance);
+                return true;
+            }
+        }
+        return false;
     }
 
     bool findRoute(const string& start, const string& goal){
 
 
         Fringe.put(start, nodes[start].distance);
-        nodes[start].state = node::unvisited;
 
         while (!Fringe.empty()){
 
@@ -253,6 +269,7 @@ public:
                 auto nb_dist = curr_node.distance + e.second;
                 if(neighbour.state == node::unvisited ||
                     (neighbour.state == node::visited && neighbour.distance > nb_dist)){
+                    if(show) logOutput<<"ADDED!\n\n";
                     Fringe.put(e.first->To, nb_dist);
                     neighbour.ID       = e.first->To;
                     neighbour.state    = node::visited;
