@@ -77,7 +77,7 @@ struct Container{
 
     list<shared_ptr<edge> > travelRoute;
 
-    bool solvable() const{
+    bool bonus() const{
         return travelTime<=bonusTime;
     }
 
@@ -128,39 +128,34 @@ struct Container{
                   ID(i), From(f), To(to), bonusTime(ti), stack_size(size){}
 
 
-    string print()const{
-        stringstream ss;
-        print(ss, true);
-        return ss.str();
-    }
-    void print(ostream& o, bool fail = false)const{
+
+    void print(ostream& o)const{
 
         o << '{' << ID << '}'
           << " With stack size: " << stack_size;
 
-        if(fail){
-             o<< "\n\tadressed with bonus Time: " << bonusTime
-              << "\n\tFrom: " << From
-              << "\n\tTo: " << To << "\n";
-            return;
-        }
-
         if(!travelRoute.empty()){
-            if(solvable()) o << "\n\t*BONUS* (";
-            else           o << "\n\tOut of time (";
+            if(bonus()) o << "\n\t[*BONUS*] (";
+            else           o << "\n\t[Out of time] (";
 
             o << travelTime << " of " << bonusTime << ")";
 
-            o << " Backtracking: \n";
-            int indent = 0;
+            o << "\nTrace: \n" << From;
+            int indent = 1;
             for(auto e : travelRoute){
+                o << " --> [" << e->ID << "]" << " --> " << e->To << "\n";
                 for(int i = 0; i< indent; i++) o << ' ';
-                o << " -->[" << e->ID << "]\n";
+                o << e->To;
                 indent++;
             }
-            o << '\n';
+            o << " --- ARRIVAL\n";
         } else {
-            o << " not solved yet\n";
+            if(processed){
+                o<< "\n\tadressed with bonus Time: " << bonusTime
+                << "\n\tFrom: " << From
+                << "\n\tTo: " << To << "\n";
+            }
+            else o << " [not solved yet]\n";
         }
 
     }

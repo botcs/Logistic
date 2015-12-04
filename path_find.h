@@ -4,14 +4,13 @@
 
 #include "data_io.h"
 
-
 class InstanceHandler
 {
     using c = shared_ptr<Container>;
     DataHandler DATA;
 
     bool show;
-    ostream& logOutput;
+    ostream& log;
 
     priority_queue<Operation> operations;
 
@@ -58,17 +57,41 @@ public:
 
 
     InstanceHandler(const char* ship_file, const char* cargo_file, const char* command_file,
-                    bool show_process = true, ostream& o = cout) :
-        show(show_process), logOutput (o)
+                    bool show_process = true, ostream& logOutput = cout) :
+        show(show_process), log (logOutput)
     {
-        dataReaderWriter(ship_file, cargo_file, DATA);
-        logOutput<<"File loading finished \n";
+        loadData(ship_file, cargo_file);
+        solveRequests();
+        ofstream OP(command_file);
+        printOp(OP);
+    }
 
+    InstanceHandler(bool show_process = true, ostream& logOutput = cout):
+        show(show_process), log (logOutput){}
 
+    void loadData(const char* ship_file, const char* cargo_file){
+        dataReader(ship_file, cargo_file, DATA);
+        log << "File loading finished \n";
+    }
 
-        ofstream commands(command_file);
+    void solveRequests(){
         while(!DATA.requests.empty()){
-            setOperations(DATA.requests.front());
+            auto currClient = DATA.requests.front();
+            if(show){
+                log << separator
+                    << "CURRENT CLIENT: ";
+
+                currClient->print(log);
+
+                log << separator << separator;
+            }
+
+            DATA.requests.pop_front();
+
+            bool solvable = setRoute(currClient);
+
+            if(solvable)
+                reserveRoute(currClient);
         }
     }
 
@@ -81,6 +104,11 @@ public:
         printOp(o);
 
     }
+
+    void printContainers(ostream& o){
+        DATA.printClients(o);
+    }
+
     void printOp(ostream& o){
         auto copy = operations;
         while(!copy.empty()){
@@ -91,60 +119,61 @@ public:
 
     void printNodes(ostream& o){
         o<<"\n\tMAPPED NODES \n";
-        o<<"\t**********\n";
+        o<<separator;
         for(auto n : nodes){
-            logOutput<< n.first << "\t";
+            log <<  n.first << "\t";
             auto& c = n.second;
 
-            if(c.incoming) logOutput<<c.incoming->ID<<"\t";
-                else logOutput<<"-\t";
-            if(c.state == node::valid) logOutput<<"VALID\t";
-            else if (c.state == node::visited) logOutput<<"!\t";
-            else logOutput<<"-\t";
-            logOutput<<c.distance;
-            logOutput<<"\n";
+            if(c.incoming) log << c.incoming->ID<<"\t";
+                else log << "-\t";
+            if(c.state == node::valid) log << "VALID\t";
+            else if (c.state == node::visited) log << "!\t";
+            else log << "-\t";
+            log << c.distance;
+            log << "\n";
         }
     }
 
     void printFringe(ostream& o){
         o<<"\n\tFRINGE\n";
-        o<<"\t***********\n";
+        o<<separator;
         auto cp = Fringe.elements;
         while(!cp.empty()){
-            logOutput<<cp.top().first<<'\t'<<cp.top().second<<'\n';
+            log << cp.top().first<<'\t'<<cp.top().second<<'\n';
             cp.pop();
         }
     }
 
-    void setInstance(c client){
+    void resetInstance(c client){
         last_source = last_valid = client->From;
         nodes.clear();
+        Fringe.clear();
         nodes.reserve(DATA.cities.size());
-
         nodes[client->From].distance = 0;
         nodes[client->From].ID = client->From;
-        Fringe.put(client->From, 0);
-    }
-    void setOperations( c client){
 
+
+    }
+    bool setRoute( c client){
+        auto& test = *client;
         if(client->From != last_source)
-            setInstance(client);
+            resetInstance(client);
         //Valid  =  knows the shortest path to itself
         if(nodes[client->To].state != node::valid){
-            if(!findRoute(client->To))
-            {
-                logOutput <<"\nPATH not found for ";
-                client->print(logOutput, true);
-                logOutput <<"\n*********************\n";
+            Fringe.put(client->From, 0);
+            nodes[client->From].state = node::visited;
+            if(!findRoute(client->To)){
+                DATA.unsolved.push_back(client);
+                return false;
             }
         }
 
-        reserveRoute(client);
+        return true;
     }
 
 
     void reserveRoute(c client){
-        DATA.requests.pop_front();
+
 
         const string& goal = client->To;
         client -> travelTime = nodes[goal].distance;
@@ -167,10 +196,9 @@ public:
 
         c remainder = client->splitCont(max_load);
 
-        if( !client->processed && !client->solvable()  && !DATA.requests.empty()){
+        if( !client->processed && !client->bonus()  && !DATA.requests.empty()){
             client->clear();
             DATA.requests.push_back(client);
-            DATA.requests.pop_front();
             return;
         }
 
@@ -202,7 +230,6 @@ public:
     }
 
     bool addLeavesToFringe(node* root, int indent = 0){
-        auto& test = *root;
         if(root->state != node::unvisited){
             bool hasValidLeaf = false;
             for(auto& child : root->children)
@@ -223,15 +250,16 @@ public:
 
         while (!Fringe.empty()){
 
+            //if(goal=="A") printNodes(cout);
             auto curr = Fringe.get();
             auto& curr_node = nodes[curr];
 
             if(show){
-                logOutput<<"\n\n****************************************\n";
-                logOutput<<"TEST VERTEX "<<curr<<"\n";
-                logOutput<<"****************************************\n"
-                         <<"\n\tBEFORE VISITING NEIGHBOURS\n";
-                printNodes(logOutput);
+                log <<  "\n\n" << separator
+                    <<"TEST VERTEX "<<curr<<"\n"
+                    <<separator
+                    <<"\tBEFORE VISITING NEIGHBOURS\n";
+                printNodes(log);
             }
 
             if(curr_node.state == node::valid) continue;
@@ -242,8 +270,8 @@ public:
 
 
             if(show){
-                logOutput<<"\n\n\tNEIGHBOUR EDGES \n";
-                logOutput<<"\t**********\n";
+                log << "\n\n\tNEIGHBOUR EDGES \n";
+                log << separator;
             }
 
             for (auto& e : DATA[curr].getShortestEdges(curr_node.distance)){
@@ -259,17 +287,17 @@ public:
                     neighbour.incoming = e.first;
                     neighbour.parent   = &curr_node;
                     curr_node.children.push_back(&neighbour);
-                    if(show) logOutput<<"+++ ";
-                } else if(show) logOutput<<"    ";
+                    if(show) log << "+++ ";
+                } else if(show) log << "    ";
 
                 if(show) {
-                    logOutput<<"distance: "<<nb_dist<<'\t';
-                    e.first->print(logOutput);
+                    log << "distance: "<<nb_dist<<'\t';
+                    e.first->print(log);
                 }
             }
             if(show) {
-                logOutput<<"\n\tAFTER VISITING NEIGHBOURS\n";
-                printFringe(logOutput);
+                log << "\n\tAFTER VISITING NEIGHBOURS\n";
+                printFringe(log);
             }
         }
         return false;

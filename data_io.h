@@ -1,23 +1,10 @@
 #ifndef DATA_IO_H_INCLUDED
 #define DATA_IO_H_INCLUDED
 
-#include <iostream>
-#include <vector>
-#include <fstream>
-#include <unordered_map>
-#include <map>
-#include <memory>
-#include <queue>
-#include <string>
-#include <sstream>
-#include <list>
-#include <queue>
-#include <algorithm>
-#include <stdexcept>
-#include <stack>
-#include <set>
 
 #include "data_handler.h"
+
+
 using namespace std;
 
 string conv (double i)
@@ -38,7 +25,7 @@ double conv (string i)
     return s;
 }
 
-class dataReaderWriter
+class dataReader
 {
 public:
 
@@ -74,24 +61,24 @@ public:
 
 
                 if(time < 0 || amount < 1){
-                    string s("\n\nERROR: Invalid parameter in line: ");
-                    s+=conv(line_count);
-                    s+="\nIN FILE: ";
-                    s+=file_name;
-                    s+="\nThe bonus time given is negative, or the amount is less then 1";
-                    s+="\n*********************\n";
-                    throw logic_error(s);
+                    stringstream err("\n\nERROR: Invalid parameter in line: ");
+                    err << conv(line_count);
+                    err << "\nIN FILE: ";
+                    err << file_name;
+                    err << "\nThe bonus time given is negative, or the amount is less then 1";
+                    err << "\n" << separator;
+                    throw logic_error(err.str() );
                 }
                 if(data.cities.count(start) && data.cities.count(finish))
                     load.push_back(make_shared<Container>(ID, start, finish, unsigned(time), size_t(amount)));
                 else {
-                    string s("\n\nERROR: Invalid parameter in line: ");
-                    s+=conv(line_count);
-                    s+="\nIN FILE: ";
-                    s+=file_name;
-                    s+="\nContainer Starting or End point not existing, or are the same";
-                    s+="\n*********************\n";
-                    throw logic_error(s);
+                    stringstream err("\n\nERROR: Invalid parameter in line: ");
+                    err << conv(line_count);
+                    err << "\nIN FILE: ";
+                    err << file_name;
+                    err << "\nContainer Starting or End point not existing, or are the same";
+                    err << "\n" << separator;
+                    throw logic_error(err.str() );
                 }
 
                 TotalAmount+=amount;
@@ -101,13 +88,13 @@ public:
         }
 
         if(TotalAmount < 1) {
-            string s("\n\nERROR: end of file reached: ");
-            s+=file_name;
-            s+="\nWith line count: ";
-            s+=conv(line_count);
-            s+="\nBut no usable data was found";
-            s+="\n*********************\n";
-            throw logic_error(s);
+            stringstream err("\n\nERROR: end of file reached: ");
+            err << file_name;
+            err << "\nWith line count: ";
+            err << conv(line_count);
+            err << "\nBut no usable data was found";
+            err << "\n" << separator;
+            throw logic_error(err.str() );
         }
 
         auto comp = [](const shared_ptr<Container> lhs, const shared_ptr<Container> rhs){
@@ -145,12 +132,12 @@ public:
             //ONLY VALID LINES ARE ACCEPTED
             if(ss >>  ID >> capac >> start >> finish >> to >> back >> phase){
                 if(capac < 1 || to < 1 || back < 1){
-                    string s("\n\nERROR: Invalid parameter in line: ");
-                    s+=conv(line_count);
-                    s+="\nIN FILE: ";
-                    s+=file_name;
-                    s+="\n*********************\n";
-                    throw logic_error(s);
+                    stringstream err("\n\nERROR: Invalid parameter in line: ");
+                    err << conv(line_count);
+                    err << "\nIN FILE: ";
+                    err << file_name;
+                    err << "\n" << separator;
+                    throw logic_error(err.str() );
                 }
 
                 data.insert(start, finish, ID, capac, to, back, phase);
@@ -158,18 +145,18 @@ public:
 
         }
         if(data.cities.empty()) {
-            string s("\n\nERROR: end of file reached: ");
-            s+=file_name;
-            s+="\nWith line count: ";
-            s+=conv(line_count);
-            s+="\nBut no usable data was found";
-            s+="\n*********************\n";
-            throw logic_error(s);
+            stringstream err("\n\nERROR: end of file reached: ");
+            err << file_name;
+            err << "\nWith line count: ";
+            err << conv(line_count);
+            err << "\nBut no usable data was found";
+            err << "\n" << separator;
+            throw logic_error(err.str() );
         }
 
     }
 
-    dataReaderWriter(const char* ship_file, const char* cargo_file, DataHandler& data)
+    dataReader(const char* ship_file, const char* cargo_file, DataHandler& data)
     {
         loadMap(ship_file, data);
         loadCont(cargo_file, data);

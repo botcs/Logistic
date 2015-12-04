@@ -184,14 +184,17 @@
 
 1449088124 c:\users\botos\documents\logistic\data_classes.h
 
-1449170277 source:c:\repo\logistic\main.cpp
+1449250183 source:c:\repo\logistic\main.cpp
 	<iostream>
 	"path_find.h"
 
-1449171122 c:\repo\logistic\path_find.h
+1449250693 c:\repo\logistic\path_find.h
 	"data_io.h"
 
-1449098192 c:\repo\logistic\data_io.h
+1449249765 c:\repo\logistic\data_io.h
+	"data_handler.h"
+
+1449250068 c:\repo\logistic\data_handler.h
 	<iostream>
 	<vector>
 	<fstream>
@@ -207,10 +210,8 @@
 	<stdexcept>
 	<stack>
 	<set>
-	"data_handler.h"
-
-1449107595 c:\repo\logistic\data_handler.h
+	<iomanip>
 	"data_classes.h"
 
-1449115891 c:\repo\logistic\data_classes.h
+1449251275 c:\repo\logistic\data_classes.h
 

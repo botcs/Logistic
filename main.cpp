@@ -8,8 +8,10 @@ int main()
 {
     ofstream log ("log.txt");
     try{
-        InstanceHandler inst("hajok.txt", "kontenerek.txt", "parancsok.txt", true, cout);
-        inst.print(cout);
+        InstanceHandler inst(false);
+        inst.loadData("hajok.txt", "kontenerek.txt");
+        inst.solveRequests();
+        inst.printContainers(cout);
 
     }catch (exception& e)
     {
