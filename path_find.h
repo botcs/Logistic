@@ -197,7 +197,7 @@ protected:
         size_t max_load = -1;
         while(curr -> parent)
         {
-            cout << curr->ID << '\n';
+            //cout << curr->ID << '\n';
             auto currMax = curr->incoming->getFreeSize();
             if(currMax<=max_load){
                 max_load = currMax;
@@ -331,11 +331,9 @@ protected:
         return false;
     }
 
-    int count = 0;
+
     bool findHeuresticRoute(const string& goal, const unsigned& bonus){
-        cout<<++count<<'\n';
-        if(count == 71)
-            count = 0;
+
         while (!Fringe.empty()){
             auto curr = Fringe.get();
             auto& curr_node = nodes[curr];
@@ -347,6 +345,9 @@ protected:
                              << "SKIPPING VALID VERTEX" << curr << "\n";
                 continue;
             }
+
+            curr_node.state = node::valid;
+
             curr_node.children.clear();
             if(curr == goal){
                 if(showProcess) log <<  "\n\n" << separator
