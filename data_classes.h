@@ -87,15 +87,6 @@ struct Container{
         travelRoute.push_front(ship);
     }
 
-    inline void trackDistance(){
-        ///IF THE CLIENT IS MET THE SECOND TIME
-        ///THEN THE NODE DISTANCES ARE NOT VALID
-        ///HAVE TO BE EVALUATED ONE BY ONE
-        for(auto& e : travelRoute){
-            travelTime += e->getDist(travelTime);
-            e->reserve(stack_size);
-        }
-    }
 
     void clear() {
         travelRoute.clear();

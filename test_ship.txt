@@ -1,0 +1,21 @@
+# random input file, varosszam: 10  jaratszam: 20  rakomanyfeleszam: 1  tavolsagmin: 2  tavolsagmax: 35  mennyisegmin: 5  mennyisegmax: 30  kapacitasmin: 10  kapacitasmax: 20  randomseed: 1449316402
+00056 10 Xunnezlajkocbesk Iujzeskukkiwzavp 7 6 2
+00393 11 Vobwolcavkijvuzz Vuknimtiksuwgizv 15 15 10
+00568 16 Eipmunwozmazwezk Cipbickifvendict 12 12 11
+02018 18 Hovzubpagparmect Fukhakfagbempurr 16 13 14
+02389 11 Eipmunwozmazwezk Solkiwvotvajpahn 9 9 3
+04168 16 Hovzubpagparmect Vuknimtiksuwgizv 15 11 14
+05868 18 Eipmunwozmazwezk Iujzeskukkiwzavp 29 28 20
+09214 10 Vuknimtiksuwgizv Xunnezlajkocbesk 17 20 11
+10269 12 Vuknimtiksuwgizv Cipbickifvendict 8 6 7
+11854 14 Eipmunwozmazwezk Jirbawrufpuhcovn 35 33 15
+15015 14 Solkiwvotvajpahn Xunnezlajkocbesk 32 34 19
+15319 10 Hovzubpagparmect Jirbawrufpuhcovn 17 15 13
+16303 11 Vobwolcavkijvuzz Vuknimtiksuwgizv 13 14 10
+18678 19 Xunnezlajkocbesk Fukhakfagbempurr 30 28 6
+23118 17 Solkiwvotvajpahn Jirbawrufpuhcovn 31 33 5
+24358 13 Jirbawrufpuhcovn Hovzubpagparmect 31 28 2
+24449 15 Vuknimtiksuwgizv Iujzeskukkiwzavp 9 11 0
+30426 16 Eipmunwozmazwezk Iujzeskukkiwzavp 31 31 8
+31742 17 Eipmunwozmazwezk Cipbickifvendict 9 9 2
+32025 16 Fukhakfagbempurr Xunnezlajkocbesk 29 27 6

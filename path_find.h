@@ -11,7 +11,6 @@ class InstanceHandler
 
     ostream& log;
 
-    priority_queue<Operation> operations;
 
     struct node{
         string ID;
@@ -47,6 +46,7 @@ class InstanceHandler
         }
     } Fringe;
     unordered_map<string, node> nodes;
+    priority_queue<Operation> operations;
 
     string last_valid;
     string last_source;
@@ -94,6 +94,7 @@ public:
                 reserveRoute(currClient);
         }
     }
+
 
     void print(ostream& o){
 
@@ -163,13 +164,20 @@ protected:
     bool setRoute(c client){
         if(client->returned){
             DATA.solved.push_back(client);
-            client->trackDistance();
+            ///IF THE CLIENT IS MET THE SECOND TIME
+            ///THEN THE NODE DISTANCES ARE NOT VALID
+            ///HAVE TO BE EVALUATED ONE BY ONE
+            for(auto& e : client->travelRoute){
+                client->travelTime += e->getDist(client->travelTime);
+                e->reserve(client->stack_size);
+                operations.emplace(client, e, client->travelTime);
+            }
             return false;
         }
 
 
 
-        //if(client->From != last_source)
+        if(client->From != last_source)
             resetInstance(client);
 
         //Valid  =  knows the shortest path to itself
@@ -211,8 +219,10 @@ protected:
         //RESERVE SHIPS
         curr = &nodes[goal];
         while(curr -> parent){
-            operations.emplace(client, curr->incoming, curr->distance);
-            if(client->bonus()) curr->incoming->reserve(max_load);
+            if(client->bonus()) {
+                    curr->incoming->reserve(max_load);
+                    operations.emplace(client, curr->incoming, curr->distance);
+            }
             client->addShip(curr->incoming);
             curr = curr->parent;
         }
@@ -229,8 +239,8 @@ protected:
         //IF ONE OF THE SHIPS GETS FULL
         if(last_invalid){
             last_valid = last_invalid->parent->ID;
-            //Fringe.clear();
-            //addLeavesToFringe(last_invalid->parent);
+            Fringe.clear();
+            addLeavesToFringe(last_invalid->parent);
         }
 
         if(remainder){
@@ -273,7 +283,7 @@ protected:
 
         }
     }
-
+large_test_
     bool findShortestRoute(const string& goal){
 
         while (!Fringe.empty()){

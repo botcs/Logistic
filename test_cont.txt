@@ -1,0 +1,11 @@
+# random input file, varosszam: 10  jaratszam: 20  rakomanyfeleszam: 1  tavolsagmin: 2  tavolsagmax: 35  mennyisegmin: 5  mennyisegmax: 30  kapacitasmin: 10  kapacitasmax: 20  randomseed: 1449316402
+Cewuriv 13 Vobwolcavkijvuzz Fukhakfagbempurr 80
+Cewuriv 21 Cipbickifvendict Jirbawrufpuhcovn 13
+Cewuriv 25 Iujzeskukkiwzavp Solkiwvotvajpahn 90
+Cewuriv 18 Cipbickifvendict Jirbawrufpuhcovn 40
+Cewuriv 15 Hovzubpagparmect Eipmunwozmazwezk 46
+Cewuriv 26 Jirbawrufpuhcovn Iujzeskukkiwzavp 33
+Cewuriv 26 Vuknimtiksuwgizv Eipmunwozmazwezk 100
+Cewuriv 20 Solkiwvotvajpahn Jirbawrufpuhcovn 73
+Cewuriv 29 Iujzeskukkiwzavp Vuknimtiksuwgizv 30
+Cewuriv 9 Cipbickifvendict Eipmunwozmazwezk 73
