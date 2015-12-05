@@ -81,17 +81,24 @@ struct Container{
         return travelTime<=bonusTime;
     }
 
-    bool processed = false;
+    bool returned = false;
 
     void addShip (shared_ptr<edge> ship){
         travelRoute.push_front(ship);
-        processed = true;
+    }
+
+    void trackDistance(){
+        ///IF THE CLIENT IS MET THE SECOND TIME
+        ///THEN THE NODE DISTANCES ARE NOT VALID
+        ///HAVE TO BE EVALUATED ONE BY ONE
+        for(auto& e : travelRoute){
+            travelTime += e->getDist(travelTime);
+            e->reserve(stack_size);
+        }
     }
 
     void clear() {
         travelRoute.clear();
-        travelTime = container_default_phase;
-        processed = true;
     }
 
     shared_ptr<Container> splitCont (size_t unload){
@@ -118,7 +125,7 @@ struct Container{
         ///the Operations
         stack_size -= unload;
         clear();
-        processed = false;
+        returned = false;
     }
 
     Container(){}
@@ -132,7 +139,11 @@ struct Container{
     void print(ostream& o)const{
 
         o << '{' << ID << '}'
-          << " With stack size: " << stack_size;
+          << "\n\tWith stack size: " << stack_size
+          << "\n\tadressed with bonus Time: " << bonusTime
+          << "\n\tFrom: " << From
+          << "\n\tTo: " << To << "\n";
+
 
         if(!travelRoute.empty()){
             if(bonus()) o << "\n\t[*BONUS*] (";
@@ -140,22 +151,17 @@ struct Container{
 
             o << travelTime << " of " << bonusTime << ")";
 
-            o << "\nTrace: \n" << From;
+            o << "\n\tTrace: \n\t" << From;
             int indent = 1;
             for(auto e : travelRoute){
-                o << " --> [" << e->ID << "]" << " --> " << e->To << "\n";
+                o << " --> [" << e->ID << "]" << " --> " << e->To << "\n\t";
                 for(int i = 0; i< indent; i++) o << ' ';
                 o << e->To;
                 indent++;
             }
             o << " --- ARRIVAL\n";
         } else {
-            if(processed){
-                o<< "\n\tadressed with bonus Time: " << bonusTime
-                << "\n\tFrom: " << From
-                << "\n\tTo: " << To << "\n";
-            }
-            else o << " [not solved yet]\n";
+            o << " [not solved yet]\n";
         }
 
     }
@@ -169,8 +175,8 @@ struct city
     list<e>& operator [] (const string& i) {return harbours[i];}
 
     void print(ostream& o){
-        o<<"\nTo\tID\tcap\tlength\tphase\n"
-         <<"************************************************\n";
+        o << "\nTo\tID\tcap\tlength\tphase\n"
+          << separator;
         for(auto& p : harbours){
             for(auto& route : p.second){
                 route->print(o);

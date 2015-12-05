@@ -20,7 +20,7 @@
 #include <iomanip>
 
 #define fill '*'
-#define width 40
+#define width 70
 #define separator setfill (fill) << setw (width) << '\n'
 
 

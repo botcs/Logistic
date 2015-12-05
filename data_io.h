@@ -41,12 +41,12 @@ public:
         string  ID, start, finish;
         int  amount, time;
 
-        unsigned line_count = 0;
 
 
         vector<shared_ptr<Container> > load;
 
-        size_t TotalAmount = 0;
+        unsigned line_count = 0;
+        size_t total_amount = 0;
         while(infile.good())
         {
             line_count++;
@@ -61,7 +61,8 @@ public:
 
 
                 if(time < 0 || amount < 1){
-                    stringstream err("\n\nERROR: Invalid parameter in line: ");
+                    stringstream err;
+                    err << "\n\nERROR: Invalid parameter in line: ";
                     err << conv(line_count);
                     err << "\nIN FILE: ";
                     err << file_name;
@@ -72,28 +73,30 @@ public:
                 if(data.cities.count(start) && data.cities.count(finish))
                     load.push_back(make_shared<Container>(ID, start, finish, unsigned(time), size_t(amount)));
                 else {
-                    stringstream err("\n\nERROR: Invalid parameter in line: ");
-                    err << conv(line_count);
-                    err << "\nIN FILE: ";
-                    err << file_name;
-                    err << "\nContainer Starting or End point not existing, or are the same";
-                    err << "\n" << separator;
+                    stringstream err;
+                    err << "\n\nERROR: Invalid parameter in line: "
+                        << conv(line_count)
+                        << "\nIN FILE: "
+                        << file_name
+                        << "\nContainer Starting or End point not existing, or are the same"
+                        << "\n" << separator;
                     throw logic_error(err.str() );
                 }
 
-                TotalAmount+=amount;
+                total_amount+=amount;
             }
 
 
         }
 
-        if(TotalAmount < 1) {
-            stringstream err("\n\nERROR: end of file reached: ");
-            err << file_name;
-            err << "\nWith line count: ";
-            err << conv(line_count);
-            err << "\nBut no usable data was found";
-            err << "\n" << separator;
+        if(total_amount < 1) {
+            stringstream err;
+            err << "\n\nERROR: end of file reached: "
+                << file_name
+                << "\nWith line count: "
+                << conv(line_count)
+                << "\nBut no usable data was found"
+                << "\n" << separator;
             throw logic_error(err.str() );
         }
 
@@ -119,6 +122,7 @@ public:
         }
 
         size_t line_count = 0;
+        size_t total_amount = 0;
         while(infile.good())
         {
             line_count++;
@@ -132,25 +136,29 @@ public:
             //ONLY VALID LINES ARE ACCEPTED
             if(ss >>  ID >> capac >> start >> finish >> to >> back >> phase){
                 if(capac < 1 || to < 1 || back < 1){
-                    stringstream err("\n\nERROR: Invalid parameter in line: ");
-                    err << conv(line_count);
-                    err << "\nIN FILE: ";
-                    err << file_name;
-                    err << "\n" << separator;
+                    stringstream err;
+                    err << "\n\nERROR: Invalid parameter in line: "
+                        << conv(line_count)
+                        << "\nIN FILE: "
+                        << file_name
+                        << "\nContainer Starting or End point not existing, or are the same"
+                        << "\n" << separator;
                     throw logic_error(err.str() );
                 }
 
                 data.insert(start, finish, ID, capac, to, back, phase);
+                total_amount++;
             }
 
         }
-        if(data.cities.empty()) {
-            stringstream err("\n\nERROR: end of file reached: ");
-            err << file_name;
-            err << "\nWith line count: ";
-            err << conv(line_count);
-            err << "\nBut no usable data was found";
-            err << "\n" << separator;
+        if(!total_amount) {
+            stringstream err;
+            err << "\n\nERROR: end of file reached: "
+                << file_name
+                << "\nWith line count: "
+                << conv(line_count)
+                << "\nBut no usable data was found"
+                << "\n" << separator;
             throw logic_error(err.str() );
         }
 

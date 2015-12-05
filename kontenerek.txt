@@ -1,6 +1,6 @@
 
-kacsa 1 H A 2
-zseml 1 C H 10
+kacsa 1 A C 1
+zseml 1 A C 10
 side 1 X H 50
 FIRST 1 A F 2
 SECOND 3 A C 4
