@@ -176,9 +176,12 @@ protected:
         }
 
 
-
+        #ifdef FringeHeurestics
         if(client->From != last_source)
             resetInstance(client);
+        #else
+            resetInstance(client);
+        #endif
 
         //Valid  =  knows the shortest path to itself
         if(nodes[client->To].state != node::valid){
@@ -239,8 +242,10 @@ protected:
         //IF ONE OF THE SHIPS GETS FULL
         if(last_invalid){
             last_valid = last_invalid->parent->ID;
-            Fringe.clear();
-            addLeavesToFringe(last_invalid->parent);
+            #ifdef FringeHeurestics
+                Fringe.clear();
+                addLeavesToFringe(last_invalid->parent);
+            #endif // FringeHeurestics
         }
 
         if(remainder){
@@ -348,8 +353,9 @@ large_test_
 
 
             if(curr_node.state == node::valid) {
-                if(showProcess) log <<  "\n\n" << separator
-                             << "SKIPPING VALID VERTEX\n" << curr << "\n";
+                if(showProcess)
+                    log <<  "\n\n" << separator
+                        << "SKIPPING VALID VERTEX\n" << curr << "\n";
                 continue;
             }
 

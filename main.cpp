@@ -13,8 +13,8 @@ int main()
         inst.showStatus  = false;
 
         auto time = clock();
-        //inst.loadData("large_test_map.txt", "large_test_container.txt");
-        inst.loadData("small_test_map.txt", "small_test_container.txt");
+        inst.loadData("large_test_map.txt", "large_test_container.txt");
+        //inst.loadData("small_test_map.txt", "small_test_container.txt");
         //inst.loadData("test_ship.txt", "test_cont.txt");
         cout << "FILE LOADING FINISHED IN " << clock() - time << " miliseconds\n";
 
