@@ -70,7 +70,6 @@ public:
 
     void loadData(const char* ship_file, const char* cargo_file){
         dataReader(ship_file, cargo_file, DATA);
-        log << "File loading finished \n";
     }
 
     void solveRequests(){
@@ -170,7 +169,7 @@ protected:
 
 
 
-        if(client->From != last_source)
+        //if(client->From != last_source)
             resetInstance(client);
 
         //Valid  =  knows the shortest path to itself
@@ -197,7 +196,6 @@ protected:
         size_t max_load = -1;
         while(curr -> parent)
         {
-            //cout << curr->ID << '\n';
             auto currMax = curr->incoming->getFreeSize();
             if(currMax<=max_load){
                 max_load = currMax;
@@ -231,7 +229,6 @@ protected:
         //IF ONE OF THE SHIPS GETS FULL
         if(last_invalid){
             last_valid = last_invalid->parent->ID;
-            resetInstance(client);
             //Fringe.clear();
             //addLeavesToFringe(last_invalid->parent);
         }
@@ -257,7 +254,7 @@ protected:
 
         return false;
     }
-
+/*
     void DFSRoute(const string& current, const string& goal){
         nodes[current].state = node::valid;
         if(current == goal)
@@ -331,7 +328,7 @@ protected:
         return false;
     }
 
-
+*/
     bool findHeuresticRoute(const string& goal, const unsigned& bonus){
 
         while (!Fringe.empty()){
@@ -342,16 +339,17 @@ protected:
 
             if(curr_node.state == node::valid) {
                 if(showProcess) log <<  "\n\n" << separator
-                             << "SKIPPING VALID VERTEX" << curr << "\n";
+                             << "SKIPPING VALID VERTEX\n" << curr << "\n";
                 continue;
             }
 
             curr_node.state = node::valid;
-
             curr_node.children.clear();
+
             if(curr == goal){
-                if(showProcess) log <<  "\n\n" << separator
-                             << "FOUND GOAL " << curr << "\n";
+                if(showProcess)
+                    log <<  "\n\n" << separator
+                        << "FOUND GOAL\n" << curr << "\n";
 
                 return true;
             }
@@ -382,7 +380,6 @@ protected:
                     else
                         Fringe.put(e.first->To, nb_dist);
 
-                    Fringe.put(e.first->To, nb_dist);
                     neighbour.ID       = e.first->To;
                     neighbour.state    = node::visited;
                     neighbour.distance = nb_dist;

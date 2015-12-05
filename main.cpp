@@ -12,12 +12,15 @@ int main()
         inst.showProcess = false;
         inst.showStatus  = false;
 
-        inst.loadData("menetrend.txt", "rakomany.txt");
-        //inst.loadData("hajok.txt", "kontenerek.txt");
         auto time = clock();
+        inst.loadData("large_test_map.txt", "large_test_container.txt");
+        //inst.loadData("small_test_map.txt", "small_test_container.txt");
+        cout << "FILE LOADING FINISHED IN " << clock() - time << " miliseconds\n";
+
+        time = clock();
         inst.solveRequests();
         cout << "SOLUTION GIVEN IN " << clock() - time << " miliseconds\n";
-        //inst.printContainers(cout);
+        inst.printContainers(log);
 
     }catch (exception& e)
     {

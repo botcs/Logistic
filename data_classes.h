@@ -15,10 +15,10 @@ struct edge
     unsigned phase;
 
     bool operator < (const edge& rhs) const {
-        return capacity/double(length) < rhs.capacity/double(rhs.length);
+        return capacity/length < rhs.capacity/rhs.length;
     }
 
-    unsigned getDist(const unsigned& cont_phase)const{
+    inline unsigned getDist(const unsigned& cont_phase)const{
         unsigned native_phase;
         if(cont_phase<=phase)
             native_phase=phase-cont_phase;
@@ -39,7 +39,7 @@ struct edge
         return load;
     }
 
-    bool reserve(const size_t& client_load){
+    inline bool reserve(const size_t& client_load){
         auto overload = (load+client_load)/capacity;
         load = (load + client_load) % capacity;
         if(!load) phase += overload * (length+back->length);
@@ -77,17 +77,17 @@ struct Container{
 
     list<shared_ptr<edge> > travelRoute;
 
-    bool bonus() const{
+    inline bool bonus() const{
         return travelTime<=bonusTime;
     }
 
     bool returned = false;
 
-    void addShip (shared_ptr<edge> ship){
+    inline void addShip (shared_ptr<edge> ship){
         travelRoute.push_front(ship);
     }
 
-    void trackDistance(){
+    inline void trackDistance(){
         ///IF THE CLIENT IS MET THE SECOND TIME
         ///THEN THE NODE DISTANCES ARE NOT VALID
         ///HAVE TO BE EVALUATED ONE BY ONE
@@ -101,7 +101,7 @@ struct Container{
         travelRoute.clear();
     }
 
-    shared_ptr<Container> splitCont (size_t unload){
+    inline shared_ptr<Container> splitCont (size_t unload){
       ///considers itself solved for a given size,
       ///and throws back a ptr to a remainder
       ///with clear history
@@ -187,7 +187,7 @@ struct city
 
     }
 
-    vector<pair< e, unsigned> > getShortestEdges(const unsigned& phase)
+    inline vector<pair< e, unsigned> > getShortestEdges(const unsigned& phase)
     {
         vector<pair< e, unsigned> > result;
         for(auto& harb : harbours)

@@ -73,14 +73,16 @@ public:
                 if(data.cities.count(start) && data.cities.count(finish))
                     load.push_back(make_shared<Container>(ID, start, finish, unsigned(time), size_t(amount)));
                 else {
-                    stringstream err;
-                    err << "\n\nERROR: Invalid parameter in line: "
+                    /*stringstream err;
+                    cout << "\n\nERROR: Invalid parameter in line: "
                         << conv(line_count)
                         << "\nIN FILE: "
                         << file_name
                         << "\nContainer Starting or End point not existing, or are the same"
                         << "\n" << separator;
-                    throw logic_error(err.str() );
+                    */
+                    continue;
+                    //throw logic_error(err.str() );
                 }
 
                 total_amount+=amount;
@@ -137,13 +139,15 @@ public:
             if(ss >>  ID >> capac >> start >> finish >> to >> back >> phase){
                 if(capac < 1 || to < 1 || back < 1){
                     stringstream err;
-                    err << "\n\nERROR: Invalid parameter in line: "
+                    cout << "\n\nERROR: Invalid parameter in line: "
                         << conv(line_count)
                         << "\nIN FILE: "
                         << file_name
-                        << "\nContainer Starting or End point not existing, or are the same"
+                        << "\nShip capacity, or one of the lengths are < 1"
                         << "\n" << separator;
-                    throw logic_error(err.str() );
+
+                    continue;
+                    //throw logic_error(err.str() );
                 }
 
                 data.insert(start, finish, ID, capac, to, back, phase);

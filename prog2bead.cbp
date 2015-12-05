@@ -38,7 +38,9 @@
 		<Unit filename="hajok.txt" />
 		<Unit filename="kontenerek.txt" />
 		<Unit filename="main.cpp" />
+		<Unit filename="menetrend.txt" />
 		<Unit filename="path_find.h" />
+		<Unit filename="rakomany.txt" />
 		<Extensions>
 			<code_completion />
 			<envvars />
