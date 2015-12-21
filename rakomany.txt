@@ -1,7 +1,0 @@
-aaa 2 A C 10
-ZZZ 4 A C 1
-#side 1 X H 50
-#FIRST 1 A F 2
-#SECOND 3 A C 4
-#libuk 1 A H 11
-#extra 100 Y A 1
