@@ -87,7 +87,6 @@ struct Container{
         travelRoute.push_front(ship);
     }
 
-
     void clear() {
         travelRoute.clear();
     }
@@ -107,6 +106,8 @@ struct Container{
       stack_size = unload;
       return remainder;
     }
+
+
 
     void unloadCont (size_t unload){
         ///considers itself the remainder of the
@@ -208,18 +209,20 @@ struct Operation
     unsigned day;
     string   cont_ID;
     string   ship_ID;
-    unsigned bonus;
+    int bonus_address;
     unsigned amount;
 
-    Operation(const shared_ptr<Container> client, const shared_ptr<edge> incoming, unsigned arrival_day):
-        cont_ID(client->ID), ship_ID(incoming->ID), bonus(client->bonusTime), amount(client->stack_size)
+    Operation(const shared_ptr<Container> client, const shared_ptr<edge> incoming):
+        cont_ID(client->ID), ship_ID(incoming->ID), amount(client->stack_size)
     {
-        day = arrival_day - incoming->length;
+        day = client->travelTime - incoming->length;
+        bonus_address = client->bonusTime - day;
+        if(bonus_address < 0)  bonus_address = 0;
         //print(cout);
     }
 
     void print(ostream& o) const{
-        o<<day<<'\t'<<ship_ID<<'\t'<<cont_ID<<'\t'<<bonus<<'\t'<<amount<<'\n';
+        o<<day<<'\t'<<ship_ID<<'\t'<<cont_ID<<'\t'<<bonus_address<<'\t'<<amount<<'\n';
     }
 
     bool operator < (const Operation& rhs) const{

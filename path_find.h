@@ -1,7 +1,5 @@
 #ifndef LIFEHACK_H_INCLUDED
 #define LIFEHACK_H_INCLUDED
-
-
 #include "data_io.h"
 
 class InstanceHandler
@@ -46,7 +44,6 @@ class InstanceHandler
         }
     } Fringe;
     unordered_map<string, node> nodes;
-    priority_queue<Operation> operations;
 
     string last_valid;
     string last_source;
@@ -60,10 +57,10 @@ public:
                     ostream& logOutput = cout) : log (logOutput){
         loadData(ship_file, cargo_file);
         DATA.print(logOutput);
-        solveRequests();
+        solveAll();
         DATA.print(logOutput);
         ofstream OP(command_file);
-        printOp(OP);
+        DATA.printOperations(OP);
     }
 
     InstanceHandler(ostream& logOutput = cout) : log (logOutput){}
@@ -72,51 +69,75 @@ public:
         dataReader(ship_file, cargo_file, DATA);
     }
 
-    void solveRequests(){
-        while(!DATA.requests.empty()){
-            auto currClient = DATA.requests.front();
+    void solveAll(){
+        while(!DATA.pending.empty()){
+            auto currClient = DATA.pending.front();
             if(showStatus){
-                if(showProcess)
+
+                if(showProcess){
                     log << "\n\n" << separator << separator << separator;
-
-                log << "CURRENT CLIENT: ";
-                currClient->print(log);
-
-                if(showProcess)
+                    log << "CURRENT CLIENT: ";
+                    currClient->print(log);
                     log << separator << separator << separator << separator;
+                }
+
+                log << "\n PROGRESS: " << DATA.getStatusPercent() << "% \t"
+                    << (DATA.solved.size()+DATA.unsolved.size()) << " / "
+                    << (DATA.solved.size()+DATA.unsolved.size()+DATA.pending.size()) << endl;
+
+
             }
 
-            DATA.requests.pop_front();
 
-            bool solvable = setRoute(currClient);
+            solveTopClient();
 
-            if(solvable)
-                reserveRoute(currClient);
         }
+        if(showStatus){
+            log << "\n PROGRESS: " << DATA.getStatusPercent() << "%\t Process terminated\n";
+        }
+    }
+
+    void solveTopClient(){
+        auto currClient = DATA.pending.front();
+        DATA.pending.pop_front();
+
+        if(currClient->returned){
+            setRoute(currClient);
+            DATA.solved.push_back(currClient);
+            return;
+        }
+
+        bool solvable = initRoute(currClient);
+
+        if(!currClient->bonus() && !DATA.pending.empty()){
+            DATA.pending.push_back(currClient);
+            currClient->returned = true;
+            return;
+        }
+
+        if(solvable){
+            setRoute(currClient);
+            DATA.solved.push_back(currClient);
+        }
+        else
+            DATA.unsolved.push_back(currClient);
     }
 
 
     void print(ostream& o){
 
-        o<<"\nRecords: ";
+        o<<"\nRecords: \n";
         DATA.print(o);
-
-        o<<"Operations \n";
-        printOp(o);
-
     }
 
     void printContainers(ostream& o){
-        DATA.printClients(o);
+        DATA.printRequests(o);
     }
 
-    void printOp(ostream& o){
-        auto copy = operations;
-        while(!copy.empty()){
-            copy.top().print(o);
-            copy.pop();
-        }
+    void printOperations(ostream& o){
+        DATA.printOperations(o);
     }
+
 
 
 
@@ -161,19 +182,7 @@ protected:
 
     }
 
-    bool setRoute(c client){
-        if(client->returned){
-            DATA.solved.push_back(client);
-            ///IF THE CLIENT IS MET THE SECOND TIME
-            ///THEN THE NODE DISTANCES ARE NOT VALID
-            ///HAVE TO BE EVALUATED ONE BY ONE
-            for(auto& e : client->travelRoute){
-                client->travelTime += e->getDist(client->travelTime);
-                e->reserve(client->stack_size);
-                operations.emplace(client, e, client->travelTime);
-            }
-            return false;
-        }
+    bool initRoute(c client){
 
 
         #ifdef FringeHeurestics
@@ -188,7 +197,6 @@ protected:
             Fringe.put(client->From, 0);
             nodes[client->From].state = node::visited;
             if(!findHeuresticRoute(client->To, client->bonusTime)){
-                DATA.unsolved.push_back(client);
                 return false;
             }
         }
@@ -196,7 +204,7 @@ protected:
         return true;
     }
 
-    void reserveRoute(c client){
+    void setRoute(c client){
 
 
         const string& goal = client->To;
@@ -213,6 +221,8 @@ protected:
                 curr->state = node::unvisited;
                 last_invalid = curr;
             }
+            //FILL CONTAINER PATH LIST
+            client->addShip(curr->incoming);
             curr = curr->parent;
         }
 
@@ -220,24 +230,8 @@ protected:
         client->travelTime = nodes[goal].distance;
 
         //RESERVE SHIPS
-        curr = &nodes[goal];
-        while(curr -> parent){
-            if(client->bonus()) {
-                    curr->incoming->reserve(max_load);
-                    operations.emplace(client, curr->incoming, curr->distance);
-            }
-            client->addShip(curr->incoming);
-            curr = curr->parent;
-        }
+        DATA.reserveRoute(client);
 
-        if(!client->bonus() && !DATA.requests.empty()){
-            client->returned = true;
-            DATA.requests.push_back(client);
-            return;
-        }
-
-
-        DATA.solved.push_back(client);
 
         //IF ONE OF THE SHIPS GETS FULL
         if(last_invalid){
@@ -249,7 +243,7 @@ protected:
         }
 
         if(remainder){
-            DATA.requests.push_front(remainder);
+            DATA.pending.push_front(remainder);
         }
     }
 

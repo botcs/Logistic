@@ -107,7 +107,7 @@ public:
                     (lhs->bonusTime == rhs->bonusTime && lhs->From < rhs->From) );
         };
         sort(load.begin(), load.end(), comp);
-        for (auto& p : load) data.requests.push_back(p);
+        for (auto& p : load) data.pending.push_back(p);
 
 
     }

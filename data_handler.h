@@ -32,11 +32,28 @@ struct DataHandler{
     using c = shared_ptr<Container>;
     using e = shared_ptr<edge>;
 
-    list<c> requests;
+    ///REQUESTS
+    list<c> pending;
     list<c> solved;
     list<c> unsolved;
 
+    priority_queue<Operation> operations;
+
     unordered_map<string, city > cities; //Vertices with edges in list
+
+    int getStatusPercent(){
+        return 100 * (solved.size()+unsolved.size())/
+                (solved.size()+unsolved.size()+pending.size());
+    }
+
+    void reserveRoute(shared_ptr<Container> client){
+        client -> travelTime = 0;
+        for(auto& e : client->travelRoute){
+                client->travelTime += e->getDist(client->travelTime);
+                e->reserve(client->stack_size);
+                operations.emplace(client, e);
+        }
+    }
 
     void printCities(ostream& o){
         o << separator
@@ -61,12 +78,12 @@ struct DataHandler{
             o << "\t\tEMPTY\n";
         }
     }
-    void printRequests(ostream& o){
+    void printPending(ostream& o){
         o << separator
          <<"REQUESTS UNDER PROCESS\n"
          <<separator;
-         if(!requests.empty()){
-            for(auto us : requests){
+         if(!pending.empty()){
+            for(auto us : pending){
                 us->print(o);
                 o << "\n";
             }
@@ -77,7 +94,7 @@ struct DataHandler{
 
     void printUnsolved(ostream& o){
         o << separator
-         <<"UNSOLVED REQUESTS\n"
+         <<"UNSOLVED pending\n"
          <<separator;
         if(!unsolved.empty()){
 
@@ -90,15 +107,26 @@ struct DataHandler{
         }
     }
 
-    void printClients(ostream& o){
-        printRequests(o);
+    void printRequests(ostream& o){
+        printPending(o);
         printSolutions(o);
         printUnsolved(o);
     }
 
     void print(ostream& o){
         printCities(o);
-        printClients(o);
+        printRequests(o);
+        printOperations(o);
+    }
+
+    void printOperations(ostream& o){
+         o << separator
+         <<"OPERATIONS\n";
+        auto copy = operations;
+        while(!copy.empty()){
+            copy.top().print(o);
+            copy.pop();
+        }
     }
 
     void insert(const string& From, const string& To,
