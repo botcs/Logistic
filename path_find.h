@@ -1,5 +1,7 @@
 #ifndef LIFEHACK_H_INCLUDED
 #define LIFEHACK_H_INCLUDED
+
+
 #include "data_io.h"
 
 class InstanceHandler
@@ -23,13 +25,15 @@ class InstanceHandler
         } state = unvisited;
     };
 
-
     struct PQ{
+        static unsigned long count;
+
         typedef pair<unsigned, string> PQElement;
         priority_queue<PQElement, vector<PQElement>, std::greater<PQElement> > elements;
         inline bool empty() { return elements.empty(); }
 
         inline void put(string item, unsigned priority) {
+            count++;
             elements.emplace(priority, item);
         }
 
@@ -63,7 +67,9 @@ public:
         DATA.printOperations(OP);
     }
 
-    InstanceHandler(ostream& logOutput = cout) : log (logOutput){}
+    InstanceHandler(ostream& logOutput = cout) : log (logOutput){
+        PQ::count = 0;
+    }
 
     void loadData(const char* ship_file, const char* cargo_file){
         dataReader(ship_file, cargo_file, DATA);
@@ -72,6 +78,7 @@ public:
     void solveAll(){
         while(!DATA.pending.empty()){
             auto currClient = DATA.pending.front();
+            #ifdef VERBOSE
             if(showStatus){
 
                 if(showProcess){
@@ -81,20 +88,21 @@ public:
                     log << separator << separator << separator << separator;
                 }
 
-                log << "\n PROGRESS: " << DATA.getStatusPercent() << "% \t"
-                    << (DATA.solved.size()+DATA.unsolved.size()) << " / "
-                    << (DATA.solved.size()+DATA.unsolved.size()+DATA.pending.size()) << endl;
+                log << "\n PROGRESS: " << DATA.getLoadPercent() << "% \t"
+                    << DATA.processed << " / "
+                    << DATA.total << endl;
 
 
             }
-
-
+            #endif // VERBOSE
             solveTopClient();
 
         }
+        #ifdef VERBOSE
         if(showStatus){
-            log << "\n PROGRESS: " << DATA.getStatusPercent() << "%\t Process terminated\n";
+            log << "\n PROGRESS: " << DATA.getLoadPercent() << "%\t Process terminated\n";
         }
+        #endif // VERBOSE
     }
 
     void solveTopClient(){
@@ -102,12 +110,13 @@ public:
         DATA.pending.pop_front();
 
         if(currClient->returned){
-            setRoute(currClient);
+            setPath(currClient);
             DATA.solved.push_back(currClient);
+
             return;
         }
 
-        bool solvable = initRoute(currClient);
+        bool solvable = initPath(currClient);
 
         if(!currClient->bonus() && !DATA.pending.empty()){
             DATA.pending.push_back(currClient);
@@ -116,11 +125,13 @@ public:
         }
 
         if(solvable){
-            setRoute(currClient);
+            setPath(currClient);
             DATA.solved.push_back(currClient);
         }
         else
             DATA.unsolved.push_back(currClient);
+
+        DATA.processed += currClient -> stack_size;
     }
 
 
@@ -138,7 +149,9 @@ public:
         DATA.printOperations(o);
     }
 
-
+    unsigned long getStepCount(){
+        return PQ::count;
+    }
 
 
 
@@ -182,7 +195,7 @@ protected:
 
     }
 
-    bool initRoute(c client){
+    bool initPath(c client){
 
 
         #ifdef FringeHeurestics
@@ -196,7 +209,7 @@ protected:
         if(nodes[client->To].state != node::valid){
             Fringe.put(client->From, 0);
             nodes[client->From].state = node::visited;
-            if(!findHeuresticRoute(client->To, client->bonusTime)){
+            if(!findHeuresticPath(client->To, client->bonusTime)){
                 return false;
             }
         }
@@ -204,7 +217,7 @@ protected:
         return true;
     }
 
-    void setRoute(c client){
+    void setPath(c client){
 
 
         const string& goal = client->To;
@@ -230,7 +243,7 @@ protected:
         client->travelTime = nodes[goal].distance;
 
         //RESERVE SHIPS
-        DATA.reserveRoute(client);
+        DATA.reservePath(client);
 
 
         //IF ONE OF THE SHIPS GETS FULL
@@ -246,7 +259,7 @@ protected:
             DATA.pending.push_front(remainder);
         }
     }
-
+    #ifdef FringeHeurestics
     bool addLeavesToFringe(node* root, int indent = 0){
         if(root->state != node::unvisited){
             bool hasValidLeaf = false;
@@ -263,82 +276,19 @@ protected:
 
         return false;
     }
-/*
-    void DFSRoute(const string& current, const string& goal){
-        nodes[current].state = node::valid;
-        if(current == goal)
-            return;
+    #endif // FringeHeurestics
 
-        for(auto& twin_edges : DATA[current].harbours){
-            //NOT THE BEST EDGE ARE SELECTED,
-            //BUT WITH THE SHORTEST TRAVEL TIME - 'LENGTH'
-            //BASED ON PRESORT OF THE MULTIPLE EDGES BETWEEN CITIES - TWIN EDGES
-            //NOTE - LENGTH AND DISTANCE ARE NOT THE SAME
-            auto& neighbour = nodes[twin_edges.first];
-            if(neighbour.state == node::unvisited){
-                neighbour.incoming = twin_edges.second.front();
-                DFSRoute(twin_edges.first, goal);
-            }
+    ///HEURESTICS ARE THE FOLLOWING:
+    /**
+     *  IF A THE GOAL IS FOUND WITHIN THE BONUS TIME,
+     *  NO FURTHER LOOKUPS ARE MADE
+     *
+     *  IF COMPILED WITH \FringeHeurestics\ SWITCH ON,
+     *  LOOKUPS ARE ONLY MADE ON PATHS THAT ARE OBSOLETE
+     *  - OBSOLETE ~ NO FREE CAPACITY ON SHIPS
+     */
 
-        }
-    }
-large_test_
-    bool findShortestRoute(const string& goal){
-
-        while (!Fringe.empty()){
-            auto curr = Fringe.get();
-            auto& curr_node = nodes[curr];
-
-            if(showProcess){
-                log <<  "\n\n" << separator
-                    <<"TEST VERTEX "<<curr<<"\n"
-                    <<separator
-                    <<"\tBEFORE VISITING NEIGHBOURS\n";
-                printNodes(log);
-            }
-
-            if(curr_node.state == node::valid) continue;
-            curr_node.children.clear();
-            if(curr == goal)
-                return true;
-
-
-            if(showProcess){
-                log << "\n\n\tNEIGHBOUR EDGES \n";
-                log << separator;
-            }
-
-            for (auto& e : DATA[curr].getShortestEdges(curr_node.distance)){
-
-                auto& neighbour = nodes[e.first->To];
-                auto nb_dist = curr_node.distance + e.second;
-                if(neighbour.state == node::unvisited ||
-                    (neighbour.state == node::visited && neighbour.distance > nb_dist)){
-                    Fringe.put(e.first->To, nb_dist);
-                    neighbour.ID       = e.first->To;
-                    neighbour.state    = node::visited;
-                    neighbour.distance = nb_dist;
-                    neighbour.incoming = e.first;
-                    neighbour.parent   = &curr_node;
-                    curr_node.children.push_back(&neighbour);
-                    if(showProcess) log << "+++ ";
-                } else if(showProcess) log << "    ";
-
-                if(showProcess) {
-                    log << "distance: " << nb_dist << " \t";
-                    e.first->print(log);
-                }
-            }
-            if(showProcess) {
-                log << "\n\tAFTER VISITING NEIGHBOURS\n";
-                printFringe(log);
-            }
-        }
-        return false;
-    }
-
-*/
-    bool findHeuresticRoute(const string& goal, const unsigned& bonus){
+    bool findHeuresticPath(const string& goal, const unsigned& bonus){
 
         while (!Fringe.empty()){
             auto curr = Fringe.get();
@@ -347,9 +297,13 @@ large_test_
 
 
             if(curr_node.state == node::valid) {
+                #ifdef VERBOSE
                 if(showProcess)
                     log <<  "\n\n" << separator
                         << "SKIPPING VALID VERTEX\n" << curr << "\n";
+
+                #endif // VERBOSE
+
                 continue;
             }
 
@@ -357,14 +311,16 @@ large_test_
             curr_node.children.clear();
 
             if(curr == goal){
+                #ifdef VERBOSE
                 if(showProcess)
                     log <<  "\n\n" << separator
                         << "FOUND GOAL\n" << curr << "\n";
+                #endif // VERBOSE
 
                 return true;
             }
 
-
+            #ifdef VERBOSE
             if(showProcess){
                 log <<  "\n\n" << separator
                     <<"TEST VERTEX "<<curr<<"\n"
@@ -377,6 +333,8 @@ large_test_
                 log << "\n\n\tNEIGHBOUR EDGES \n";
                 log << separator;
             }
+            #endif // VERBOSE
+
 
             for (auto& e : DATA[curr].getShortestEdges(curr_node.distance)){
 
@@ -396,21 +354,31 @@ large_test_
                     neighbour.incoming = e.first;
                     neighbour.parent   = &curr_node;
                     curr_node.children.push_back(&neighbour);
-                    if(showProcess) log << "+++ ";
-                } else if(showProcess) log << "    ";
-
-                if(showProcess) {
-                    log << "distance: " << nb_dist << " \t";
-                    e.first->print(log);
+                    #ifdef VERBOSE
+                        if(showProcess) log << "+++ ";
+                    #endif // VERBOSE
                 }
+                #ifdef VERBOSE
+                    else if(showProcess) log << "    ";
+
+                    if(showProcess) {
+                        log << "distance: " << nb_dist << " \t";
+                        e.first->print(log);
+                    }
+
+                #endif // VERBOSE
             }
+            #ifdef VERBOSE
             if(showProcess) {
                 log << "\n\tAFTER VISITING NEIGHBOURS\n";
                 printFringe(log);
             }
+            #endif // VERBOSE
         }
         return false;
     }
 };
+
+unsigned long InstanceHandler::PQ::count = 0;
 
 #endif // LIFEHACK_H_INCLUDED

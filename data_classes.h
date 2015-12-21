@@ -75,7 +75,7 @@ struct Container{
     unsigned travelTime = container_default_phase;
 
 
-    list<shared_ptr<edge> > travelRoute;
+    list<shared_ptr<edge> > travelPath;
 
     inline bool bonus() const{
         return travelTime<=bonusTime;
@@ -84,11 +84,11 @@ struct Container{
     bool returned = false;
 
     inline void addShip (shared_ptr<edge> ship){
-        travelRoute.push_front(ship);
+        travelPath.push_front(ship);
     }
 
     void clear() {
-        travelRoute.clear();
+        travelPath.clear();
     }
 
     inline shared_ptr<Container> splitCont (size_t unload){
@@ -137,7 +137,7 @@ struct Container{
           << "\n\tTo: " << To << "\n";
 
 
-        if(!travelRoute.empty()){
+        if(!travelPath.empty()){
             if(bonus()) o << "\n\t[*BONUS*] (";
             else           o << "\n\t[Out of time] (";
 
@@ -145,7 +145,7 @@ struct Container{
 
             o << "\n\tTrace: \n\t" << From;
             int indent = 1;
-            for(auto e : travelRoute){
+            for(auto e : travelPath){
                 o << " --> [" << e->ID << "]" << " --> " << e->To << "\n\t";
                 for(int i = 0; i< indent; i++) o << ' ';
                 o << e->To;
@@ -164,14 +164,14 @@ struct city
 {
     map< string, list<e> > harbours;
 
-    list<e>& operator [] (const string& i) {return harbours[i];}
+    inline list<e>& operator [] (const string& i) {return harbours[i];}
 
     void print(ostream& o){
         o << "\nTo\tID\tcap\tlength\tphase\n"
           << separator;
         for(auto& p : harbours){
-            for(auto& route : p.second){
-                route->print(o);
+            for(auto& path : p.second){
+                path->print(o);
             }
             o<<"\n";
         }
@@ -186,11 +186,11 @@ struct city
         {
             unsigned min_dist = -1;
             e best;
-            for(auto& route : harb.second){
-                auto act_dist = route->getDist(phase);
+            for(auto& path : harb.second){
+                auto act_dist = path->getDist(phase);
                 if(act_dist < min_dist){
                     min_dist = act_dist;
-                    best     = route;
+                    best     = path;
                 }
             }
 
@@ -201,7 +201,7 @@ struct city
 
     ~city(){
     }
-    //const list<edge *>& operator [] (const index& i) const {return harbours[i];}
+
 };
 
 struct Operation
@@ -218,7 +218,6 @@ struct Operation
         day = client->travelTime - incoming->length;
         bonus_address = client->bonusTime - day;
         if(bonus_address < 0)  bonus_address = 0;
-        //print(cout);
     }
 
     void print(ostream& o) const{

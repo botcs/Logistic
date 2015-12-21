@@ -33,6 +33,8 @@ struct DataHandler{
     using e = shared_ptr<edge>;
 
     ///REQUESTS
+    long unsigned total = 0;
+    long unsigned processed = 0;
     list<c> pending;
     list<c> solved;
     list<c> unsolved;
@@ -41,14 +43,18 @@ struct DataHandler{
 
     unordered_map<string, city > cities; //Vertices with edges in list
 
-    int getStatusPercent(){
+    int getClientPercent(){
         return 100 * (solved.size()+unsolved.size())/
                 (solved.size()+unsolved.size()+pending.size());
     }
 
-    void reserveRoute(shared_ptr<Container> client){
+    int getLoadPercent(){
+        return 100 * processed/total;
+    }
+
+    inline void reservePath(shared_ptr<Container> client){
         client -> travelTime = 0;
-        for(auto& e : client->travelRoute){
+        for(auto& e : client->travelPath){
                 client->travelTime += e->getDist(client->travelTime);
                 e->reserve(client->stack_size);
                 operations.emplace(client, e);
@@ -149,7 +155,8 @@ struct DataHandler{
 
     };
 
-    city& operator[] (const string& cityIndex) {return cities[cityIndex];}
+    inline city& operator[] (const string& cityIndex) {return cities[cityIndex];}
+
 
     ~DataHandler(){
     }

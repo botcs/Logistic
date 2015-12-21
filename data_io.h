@@ -70,8 +70,10 @@ public:
                     err << "\n" << separator;
                     throw logic_error(err.str() );
                 }
-                if(data.cities.count(start) && data.cities.count(finish))
+                if(data.cities.count(start) && data.cities.count(finish)){
+                    data.total += amount;
                     load.push_back(make_shared<Container>(ID, start, finish, unsigned(time), size_t(amount)));
+                }
                 else {
                     /*stringstream err;
                     cout << "\n\nERROR: Invalid parameter in line: "
