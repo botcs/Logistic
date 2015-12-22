@@ -54,8 +54,33 @@ class InstanceHandler
 
 public:
 
-    bool showStatus = true;
     bool showProcess = false;
+
+    void printDetail(ostream& o){
+
+        o<<"\nRecords: \n";
+        DATA.print(o);
+    }
+
+    void printSum(ostream& o){
+        o << "Number of..."
+          << "\nCities:  \t" << DATA.cities.size()
+          << "\nShips:   \t" << DATA.num_of_ships
+          << "\nDeliveries:\t" << DATA.total;
+
+    }
+
+    void printContainers(ostream& o){
+        DATA.printRequests(o);
+    }
+
+    void printOperations(ostream& o){
+        DATA.printOperations(o);
+    }
+
+    unsigned long getStepCount(){
+        return PQ::count;
+    }
 
     InstanceHandler(const char* ship_file, const char* cargo_file, const char* command_file,
                     ostream& logOutput = cout) : log (logOutput){
@@ -76,32 +101,33 @@ public:
     }
 
     void solveAll(){
+        #ifdef VERBOSE
+            log << "\nPROCESSING ALL REQUESTS... Current status:\n";
+
+            progressBar PB(DATA.total, DATA.processed);
+        #endif // VERBOSE
         while(!DATA.pending.empty()){
             auto currClient = DATA.pending.front();
             #ifdef VERBOSE
-            if(showStatus){
-
                 if(showProcess){
-                    log << "\n\n" << separator << separator << separator;
-                    log << "CURRENT CLIENT: ";
+                    log << "\n PROGRESS: " << DATA.getLoadProgress() << "% \t"
+                        << DATA.processed << " / "
+                        << DATA.total << "\n\n" << separator << separator
+                        << "CURRENT CLIENT: ";
                     currClient->print(log);
-                    log << separator << separator << separator << separator;
+                    log << separator << separator << separator;
+                } else {
+                    PB.refresh();
                 }
 
-                log << "\n PROGRESS: " << DATA.getLoadPercent() << "% \t"
-                    << DATA.processed << " / "
-                    << DATA.total << endl;
 
-
-            }
             #endif // VERBOSE
             solveTopClient();
 
         }
         #ifdef VERBOSE
-        if(showStatus){
-            log << "\n PROGRESS: " << DATA.getLoadPercent() << "%\t Process terminated\n";
-        }
+            PB.refresh();
+            log << "\nProcessing terminated successfully\n";
         #endif // VERBOSE
     }
 
@@ -135,23 +161,7 @@ public:
     }
 
 
-    void print(ostream& o){
 
-        o<<"\nRecords: \n";
-        DATA.print(o);
-    }
-
-    void printContainers(ostream& o){
-        DATA.printRequests(o);
-    }
-
-    void printOperations(ostream& o){
-        DATA.printOperations(o);
-    }
-
-    unsigned long getStepCount(){
-        return PQ::count;
-    }
 
 
 
@@ -327,9 +337,7 @@ protected:
                     <<separator
                     <<"\tBEFORE VISITING NEIGHBOURS\n";
                 printNodes(log);
-            }
 
-            if(showProcess){
                 log << "\n\n\tNEIGHBOUR EDGES \n";
                 log << separator;
             }

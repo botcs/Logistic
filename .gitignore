@@ -16,6 +16,9 @@
 # Fortran module files
 *.mod
 
+# Test data
+*.txt
+
 # Compiled Static libraries
 *.lai
 *.la

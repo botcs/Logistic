@@ -14,14 +14,17 @@ int main()
     try{
         InstanceHandler inst(cout);
         inst.showProcess = false;
-        inst.showStatus  = true;
 
         auto time = clock();
-        inst.loadData("large_test_map.txt", "large_test_container.txt");
+        //inst.loadData("large_test_map.txt", "large_test_container.txt");
         //inst.loadData("small_test_map.txt", "small_test_container.txt");
-        //inst.loadData("test_ship.txt", "test_cont.txt");
+        inst.loadData("test_ship.txt", "test_cont.txt");
         //inst.loadData("menetrend.txt", "rakomany.txt");
-        cout << "FILE LOADING FINISHED IN " << clock() - time << " miliseconds\n";
+        cout << "FILE LOADING FINISHED IN " << clock() - time << " miliseconds\n\n";
+
+        cout << "SUMMING LOADED DATA: \n";
+        inst.printSum(cout);
+
         time = clock();
         inst.solveAll();
         cout << "\nSOLUTION GIVEN IN " << clock() - time << " miliseconds\n"
