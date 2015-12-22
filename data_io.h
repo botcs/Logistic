@@ -52,15 +52,19 @@ public:
         const size_t barWidth = 30;
 
         cout << "[";
+<<<<<<< HEAD
         HANDLE hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
         SetConsoleTextAttribute(hStdout, FOREGROUND_RED | FOREGROUND_INTENSITY);
 
+=======
+>>>>>>> 7eebb639ddcded18e26fb91343167520f72059ce
         size_t pos = barWidth * percent_done ;
         for (size_t i = 0; i < barWidth; ++i) {
             if (i < pos)        cout << "=";
             else if (i == pos)  cout << ">";
             else                cout << " ";
         }
+<<<<<<< HEAD
 
         SetConsoleTextAttribute(hStdout,
                                   FOREGROUND_RED |
@@ -70,6 +74,12 @@ public:
         cout.flush();
         ///Tested only on cout
           hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
+=======
+        cout << "] ";
+        cout.flush();
+        ///Tested only on cout
+          HANDLE hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
+>>>>>>> 7eebb639ddcded18e26fb91343167520f72059ce
           SetConsoleTextAttribute(hStdout, FOREGROUND_RED | FOREGROUND_INTENSITY);
           cout << fixed << setprecision(2) << percent_done * 100 << "%\t";
           SetConsoleTextAttribute(hStdout,
