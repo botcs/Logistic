@@ -20,8 +20,8 @@
 #include <iomanip>
 
 #define fill '*'
-#define width 70
-#define separator setfill (fill) << setw (width) << '\n'
+#define sep_width 70
+#define separator setfill (fill) << setw (sep_width) << '\n'
 
 
 #include "data_classes.h"
@@ -32,6 +32,8 @@ struct DataHandler{
     using c = shared_ptr<Container>;
     using e = shared_ptr<edge>;
 
+
+
     ///REQUESTS
     long unsigned total = 0;
     long unsigned processed = 0;
@@ -41,7 +43,8 @@ struct DataHandler{
 
     priority_queue<Operation> operations;
 
-    unordered_map<string, city > cities; //Vertices with edges in list
+    size_t num_of_ships = 0;
+    unordered_map<string, city > cities;
 
     int getClientPercent(){
         return 100 * (solved.size()+unsolved.size())/
@@ -52,6 +55,12 @@ struct DataHandler{
         return 100 * processed/total;
     }
 
+
+
+    float getLoadProgress(){
+        return processed/float(total);
+    }
+
     inline void reservePath(shared_ptr<Container> client){
         client -> travelTime = 0;
         for(auto& e : client->travelPath){
@@ -60,6 +69,7 @@ struct DataHandler{
                 operations.emplace(client, e);
         }
     }
+
 
     void printCities(ostream& o){
         o << separator
@@ -152,6 +162,7 @@ struct DataHandler{
         cities[From][To].push_back(E);
         cities[To][From].push_back(backE);
 
+        ++num_of_ships;
 
     };
 

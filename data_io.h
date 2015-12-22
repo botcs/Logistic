@@ -3,7 +3,8 @@
 
 
 #include "data_handler.h"
-
+#include <windows.h>
+#include <chrono>
 
 using namespace std;
 
@@ -24,6 +25,77 @@ double conv (string i)
     ss>>s;
     return s;
 }
+
+class progressBar
+{
+public:
+  progressBar(const long unsigned& total,
+              const long unsigned& processed)
+    : _total(total), _processed(processed),
+      _begin(std::chrono::steady_clock::now())
+//  ...
+    {}
+  void refresh()
+  {
+    using namespace std::chrono;
+
+    if ( _processed == _total || (_processed-_last) * 1000 /_total > 0 )
+    {
+        _last = _processed;
+        duration time_taken = Clock::now() - _begin;
+        float percent_done = (float)_processed/_total;
+        duration time_left = time_taken * (1/percent_done - 1);
+        minutes minutes_left = duration_cast<minutes>(time_left);
+        seconds seconds_left = duration_cast<seconds>(time_left - minutes_left);
+
+
+        const size_t barWidth = 30;
+
+        cout << "[";
+        HANDLE hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
+        SetConsoleTextAttribute(hStdout, FOREGROUND_RED | FOREGROUND_INTENSITY);
+
+        size_t pos = barWidth * percent_done ;
+        for (size_t i = 0; i < barWidth; ++i) {
+            if (i < pos)        cout << "=";
+            else if (i == pos)  cout << ">";
+            else                cout << " ";
+        }
+
+        SetConsoleTextAttribute(hStdout,
+                                  FOREGROUND_RED |
+                                  FOREGROUND_GREEN |
+                                  FOREGROUND_BLUE);
+        cout << "] ";
+        cout.flush();
+        ///Tested only on cout
+          hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
+          SetConsoleTextAttribute(hStdout, FOREGROUND_RED | FOREGROUND_INTENSITY);
+          cout << fixed << setprecision(2) << percent_done * 100 << "%\t";
+          SetConsoleTextAttribute(hStdout,
+                                  FOREGROUND_RED |
+                                  FOREGROUND_GREEN |
+                                  FOREGROUND_BLUE);
+
+
+
+        std::cout << minutes_left.count() << "m " << seconds_left.count() << "s        \r";
+        cout.flush();
+    }
+  }
+private:
+
+  typedef std::chrono::steady_clock Clock;
+  typedef Clock::time_point time_point;
+  typedef Clock::period period;
+  typedef std::chrono::duration<float, period> duration;
+  const long unsigned& _total;
+  const long unsigned& _processed;
+  long unsigned _last = 0;
+  time_point _begin;
+  //...
+};
+
 
 class dataReader
 {
