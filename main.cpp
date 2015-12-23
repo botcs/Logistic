@@ -30,7 +30,7 @@ int main()
         cout << "\nSOLUTION GIVEN IN " << clock() - time << " miliseconds\n"
              << "\nTOTAL CITY LOOKUPS: " << inst.getStepCount() << endl;
         inst.printDetail(cout);
-
+        ints.printOperations(OP);
     }catch (exception& e)
     {
         cout << e.what() << '\n';
