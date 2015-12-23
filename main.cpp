@@ -22,14 +22,13 @@ int main()
         inst.loadData("menetrend.txt", "rakomany.txt");
         cout << "FILE LOADING FINISHED IN " << clock() - time << " miliseconds\n\n";
 
-        cout << "SUMMING LOADED DATA: \n";
         inst.printSum(cout);
 
         time = clock();
         inst.solveAll();
         cout << "\nSOLUTION GIVEN IN " << clock() - time << " miliseconds\n"
              << "\nTOTAL CITY LOOKUPS: " << inst.getStepCount() << endl;
-        inst.printDetail(cout);
+        //inst.printDetail(cout);
         ints.printOperations(OP);
     }catch (exception& e)
     {
