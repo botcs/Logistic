@@ -26,12 +26,18 @@ double conv (string i)
     return s;
 }
 
-void RED(){
+void setTextRed(){
     HANDLE hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
     SetConsoleTextAttribute(hStdout, FOREGROUND_RED | FOREGROUND_INTENSITY);
 }
 
-void WHITE(){
+void setTextGreen(){
+    HANDLE hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
+    SetConsoleTextAttribute(hStdout, FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+}
+
+
+void setTextWhite(){
     HANDLE hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
     SetConsoleTextAttribute(hStdout,
                                   FOREGROUND_RED |
@@ -40,7 +46,7 @@ void WHITE(){
                                   FOREGROUND_INTENSITY);
 }
 
-void DEF(){
+void setTextDef(){
     HANDLE hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
     SetConsoleTextAttribute(hStdout,
                                   FOREGROUND_RED |
@@ -51,11 +57,15 @@ void DEF(){
 class progressBar
 {
 public:
+
+    const size_t barWidth;
     progressBar(const long unsigned& total,
-                const long unsigned& processed)
-        : _total(total), _processed(processed),
+                const long unsigned& processed,
+                const size_t& width = 20):
+          barWidth(width),
+          _total(total),
+          _processed(processed),
           _begin(std::chrono::steady_clock::now())
-//  ...
     {}
     void refresh()
     {
@@ -71,29 +81,28 @@ public:
             seconds seconds_left = duration_cast<seconds>(time_left - minutes_left);
 
 
-            const size_t barWidth = 30;
-
+            const size_t pos = barWidth * percent_done;
+            setTextWhite();
             cout << "[";
-
-            RED();
-            size_t pos = barWidth * percent_done ;
-            for (size_t i = 0; i < barWidth; ++i)
-            {
-                if (i < pos)        cout << ".";
-                else if (i == pos)  cout << "_@_/";
-                else                cout << " ";
+            for (size_t i = 0; i < barWidth; ++i){
+                if (i < pos){
+                    setTextGreen();
+                    cout << ".";
+                }else if (i == pos){
+                    setTextRed();
+                    cout << "_@_/";
+                }else{
+                    setTextWhite();
+                    cout << ".";
+                }
             }
-
-            WHITE();
+            setTextWhite();
             cout << "] ";
-            ///Tested only on cout
-            RED();
-            cout << fixed << setprecision(2) << percent_done * 100 << "%\t";
-            WHITE();
+            setTextRed();
+            cout << fixed << setprecision(2) << percent_done * 100 << "% ";
 
-
-
-            std::cout << minutes_left.count() << "m " << seconds_left.count() << "s        \r";
+            setTextGreen();
+            std::cout << "ETL: " << minutes_left.count() << "m " << seconds_left.count() << "s        \r";
             cout.flush();
         }
 
@@ -101,7 +110,7 @@ public:
     }
     ~progressBar()
     {
-        DEF();
+        setTextDef();
     }
 private:
 
@@ -117,13 +126,15 @@ private:
 };
 
 
+
+
 class dataReader
 {
 public:
 
     void loadCont(const char* file_name, DataHandler& data){
         ifstream infile (file_name);
-        if(infile.bad()){
+        if(!infile){
             string exc = "wrong filename: ";
             exc+= file_name;
             exc+= "\n";
@@ -210,7 +221,7 @@ public:
         string  ID, start, finish;
         int  capac, to, back, phase;
 
-        if(infile.bad()){
+        if(!infile){
             string exc = "wrong filename: ";
             exc+= file_name;
             exc+= "\n";

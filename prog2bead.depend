@@ -256,3 +256,37 @@
 
 1450826808 d:\csabi\github\logistic\data_classes.h
 
+1450861471 source:c:\users\anya\documents\csabi\logistic\main.cpp
+	<iostream>
+	"path_find.h"
+	<ctime>
+
+1450861395 c:\users\anya\documents\csabi\logistic\path_find.h
+	"data_io.h"
+
+1450863238 c:\users\anya\documents\csabi\logistic\data_io.h
+	"data_handler.h"
+	<windows.h>
+	<chrono>
+
+1450861450 c:\users\anya\documents\csabi\logistic\data_handler.h
+	<iostream>
+	<vector>
+	<fstream>
+	<unordered_map>
+	<map>
+	<memory>
+	<queue>
+	<string>
+	<sstream>
+	<list>
+	<queue>
+	<algorithm>
+	<stdexcept>
+	<stack>
+	<set>
+	<iomanip>
+	"data_classes.h"
+
+1450861395 c:\users\anya\documents\csabi\logistic\data_classes.h
+

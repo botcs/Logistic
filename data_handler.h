@@ -51,7 +51,7 @@ struct DataHandler{
                 (solved.size()+unsolved.size()+pending.size());
     }
 
-    int getLoadPercent(){
+    double getLoadPercent(){
         return 100 * processed/total;
     }
 
