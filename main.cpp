@@ -22,14 +22,20 @@ int main()
         inst.loadData("menetrend.txt", "rakomany.txt");
         cout << "FILE LOADING FINISHED IN " << clock() - time << " miliseconds\n\n";
 
+        cout << "SUMMING LOADED DATA: \n";
         inst.printSum(cout);
 
         time = clock();
         inst.solveAll();
         cout << "\nSOLUTION GIVEN IN " << clock() - time << " miliseconds\n"
              << "\nTOTAL CITY LOOKUPS: " << inst.getStepCount() << endl;
+<<<<<<< HEAD
         //inst.printDetail(cout);
         inst.printOperations(OP);
+=======
+        inst.printDetail(cout);
+        ints.printOperations(OP);
+>>>>>>> parent of b5297c2... Update main.cpp
     }catch (exception& e)
     {
         cout << e.what() << '\n';
