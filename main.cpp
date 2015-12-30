@@ -1,82 +1,40 @@
 #include <iostream>
-#include <getopt.h>
 
 using namespace std;
-#define FringeHeurestics
 
 #define VERBOSE
 
 #include "instance.h"
+#include "randomGen.h"
 
+#define FringeHeurestics
 #include <ctime>
-int main(int argc, char* argv[])
+int main()
 {
-    const char *serr = "SYNTAX ERROR use the following:\n -s <ships> -c <container> -o <operations> (output)\n [optional] -l <log> -p (detailed search)\n";
-    char *contFile = NULL, *shipFile = NULL, *opFile = NULL, *logFile = NULL;
-    char verb = InstanceHandler::showNothing;
-    int index;
-    int c;
-    opterr = 0;
-    while ((c = getopt (argc, argv, "s:l:o:c:p")) != -1)
-        switch (c)
-        {
-        case 's':
-            shipFile = optarg;
-            break;
-        case 'l':
-            logFile = optarg;
-            verb |= InstanceHandler::showClient;
-            break;
-        case 'o':
-            opFile = optarg;
-            break;
-        case 'c':
-            contFile = optarg;
-            break;
-        case 'v':
-            verb |= InstanceHandler::showSearch;
-            break;
-        case '?':
-            cout << serr;
-            return 1;
-        default:
-            abort ();
-        }
-
-
-    for (index = optind; index < argc; index++)
-        cout << "Non-option argument " << argv[index] << "\n";
-
+    ofstream OP("parancsok.txt");
     try{
-
+        generate(1000, 1000);
         InstanceHandler inst;
+        auto time = clock();
+        //inst.loadData("large_test_map.txt", "large_test_container.txt");
+        //inst.loadData("small_test_map.txt", "small_test_container.txt");
+        //inst.loadData("test_ship.txt", "test_cont.txt");
+        inst.loadData("menetrend.txt", "rakomany.txt");
+        cout << "FILE LOADING FINISHED IN " << clock() - time << " miliseconds\n\n";
 
-        inst.LogType(verb);
-        if(shipFile && contFile)
-            inst.loadData(shipFile, contFile);
-        else throw logic_error(serr);
+        inst.printSum(cout);
 
-        inst.solveAll(verb);
-
-        if(logFile){
-            ofstream log (logFile);
-            if(!log){
-                inst.printLog(log);
-            }
-        }
-
-        if(opFile){
-            ofstream op (opFile);
-            if(!op){
-                inst.printOperations(op);
-            }
-        }else throw logic_error(serr);
-
+        time = clock();
+        inst.solveAll(true);
+        cout << "\nSOLUTION GIVEN IN " << clock() - time << " miliseconds\n"
+             << "\nTOTAL CITY LOOKUPS: " << inst.getStepCount() << endl;
+        inst.printOperations(OP);
     }catch (exception& e)
     {
         cout << e.what() << '\n';
     }
 
-
+    cout<<"\n\n\nNYOMJ ENTERT A KILEPESHEZ";
+    cin.get();
     return 0;
 }

@@ -106,7 +106,6 @@ public:
         #endif
 
         //Valid  =  knows the shortest path to itself
-        printNodes(cout);
         if(nodes[client->To].state != node::valid){
             Fringe.put(client->From, 0);
             nodes[client->From].state = node::visited;
@@ -127,8 +126,13 @@ public:
         node* last_invalid = nullptr;
         node* curr = &nodes[goal];
         size_t max_load = -1;
+        size_t helper = 0;
         while(curr -> parent)
         {
+            helper++;
+            if(helper > DATA.cities.size()){
+                client->print(cout);
+            }
             auto currMax = curr->incoming->getFreeSize();
             if(currMax<=max_load){
                 max_load = currMax;
@@ -220,9 +224,11 @@ public:
                 if(neighbour.state == node::unvisited ||
                     (neighbour.state == node::visited && neighbour.distance > nb_dist)){
                     ///SHORTCUT IF A SOLUTION FOUND
+                    #ifndef FringeHeurestics
                     if(e.first->To == goal && bonus >= nb_dist)
                         Fringe.put(e.first->To, 0);
                     else
+                    #endif
                         Fringe.put(e.first->To, nb_dist);
 
                     neighbour.ID       = e.first->To;
@@ -286,9 +292,11 @@ public:
                 if(neighbour.state == node::unvisited ||
                     (neighbour.state == node::visited && neighbour.distance > nb_dist)){
                     ///SHORTCUT IF A SOLUTION FOUND
+                    #ifndef FringeHeurestics
                     if(e.first->To == goal && bonus >= nb_dist)
                         Fringe.put(e.first->To, 0);
                     else
+                    #endif // FringeHeurestics
                         Fringe.put(e.first->To, nb_dist);
 
                     neighbour.ID       = e.first->To;

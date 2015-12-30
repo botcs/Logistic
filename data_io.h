@@ -66,7 +66,7 @@ public:
           _total(total),
           _processed(processed),
           _begin(std::chrono::steady_clock::now())
-    {}
+    {cout << endl;}
     void refresh()
     {
         using namespace std::chrono;
@@ -102,7 +102,7 @@ public:
             cout << fixed << setprecision(2) << percent_done * 100 << "% ";
 
             setTextGreen();
-            std::cout << "ETL: " << minutes_left.count() << "m " << seconds_left.count() << "s        ";
+            std::cout << "ETL: " << minutes_left.count() << "m " << seconds_left.count() << "s    ";
             cout.flush();
         }
 
