@@ -96,14 +96,7 @@ public:
     }
 
     bool initPath(c client){
-
-
-        #ifdef FringeHeurestics
-        if(client->From != last_source)
-            resetInstance(client);
-        #endif
-
-
+        resetInstance(client);
 
 
         //Valid  =  knows the shortest path to itself
@@ -129,14 +122,8 @@ public:
         node* last_invalid = nullptr;
         node* curr = &nodes[goal];
         size_t max_load = -1;
-        size_t helper = 0;
         while(curr -> parent)
         {
-            helper++;
-            if(helper > DATA.cities.size()){
-                //client->print(cout);
-                break;
-            }
             auto currMax = curr->incoming->getFreeSize();
             if(currMax<=max_load){
                 max_load = currMax;
@@ -162,6 +149,7 @@ public:
         if(last_invalid){
             last_valid = last_invalid->parent->ID;
             #ifdef FringeHeurestics
+
                 Fringe.clear();
                 addLeavesToFringe(last_invalid->parent);
             #endif // FringeHeurestics

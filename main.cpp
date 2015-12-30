@@ -13,7 +13,7 @@ int main()
 {
     ofstream OP("parancsok.txt");
     try{
-        generate(1000, 1000);
+        //generate(1000, 1000);
         InstanceHandler inst;
         auto time = clock();
         //inst.loadData("large_test_map.txt", "large_test_container.txt");
@@ -29,6 +29,8 @@ int main()
         cout << "\nSOLUTION GIVEN IN " << clock() - time << " miliseconds\n"
              << "\nTOTAL CITY LOOKUPS: " << inst.getStepCount() << endl;
         inst.printOperations(OP);
+
+        inst.printContainers(cout);
     }catch (exception& e)
     {
         cout << e.what() << '\n';

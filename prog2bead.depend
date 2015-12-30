@@ -186,7 +186,11 @@
 
 1450770861 D
 
-1450771116 source:c:\repo\logistic\main.cpp
+1451515673 source:c:\repo\logistic\main.cpp
+	<iostream>
+	"instance.h"
+	"randomGen.h"
+	<ctime>
 
 1450771284 bb639ddcded18e26fb91343167520f72059ce
 	<iostream>
@@ -196,12 +200,15 @@
 	<windows.h>
 	<chrono>
 
-1450770861 c:\repo\logistic\path_find.h
+1451515942 c:\repo\logistic\path_find.h
 	"data_io.h"
 
-1450771284 c:\repo\logistic\data_io.h
+1451515062 c:\repo\logistic\data_io.h
+	"data_handler.h"
+	<windows.h>
+	<chrono>
 
-1450770443 c:\repo\logistic\data_handler.h
+1451515062 c:\repo\logistic\data_handler.h
 	<iostream>
 	<vector>
 	<fstream>
@@ -220,7 +227,7 @@
 	<iomanip>
 	"data_classes.h"
 
-1450735632 c:\repo\logistic\data_classes.h
+1451515062 c:\repo\logistic\data_classes.h
 
 1450830035 source:d:\csabi\github\logistic\main.cpp
 	<iostream>
@@ -329,6 +336,16 @@
 	"path_find.h"
 
 1451495872 c:\workstation\logistic\randomgen.h
+	<iostream>
+	<fstream>
+	<sstream>
+	<vector>
+	<set>
+
+1451515062 c:\repo\logistic\instance.h
+	"path_find.h"
+
+1451515062 c:\repo\logistic\randomgen.h
 	<iostream>
 	<fstream>
 	<sstream>
