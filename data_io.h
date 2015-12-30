@@ -286,4 +286,97 @@ public:
 
 };
 
+
+///DATA HANDLER PRINT FUNCTIONS IMPLEMENT
+    float DataHandler::getClientPercent(){
+        return 100 * (solved.size()+unsolved.size())/
+                (solved.size()+unsolved.size()+pending.size());
+    }
+
+    float DataHandler::getLoadPercent(){
+        return 100 * processed/total;
+    }
+
+
+
+    float DataHandler::getLoadProgress(){
+        return processed/float(total);
+    }
+
+
+    void DataHandler::printCities(ostream& o){
+        o << separator
+         <<"CITIES\n";
+        for(auto& vertex : cities){
+            o << separator
+             <<vertex.first<<"\n";
+            vertex.second.print(o);
+        }
+    }
+    void DataHandler::printSolutions(ostream& o){
+        o << separator
+         <<"SOLVED REQUESTS\n"
+         <<separator;
+        if(!solved.empty()){
+
+            for(auto s : solved){
+                s->print(o);
+                o << "\n";
+            }
+        } else {
+            o << "\t\tEMPTY\n";
+        }
+    }
+    void DataHandler::printPending(ostream& o){
+        o << separator
+         <<"REQUESTS UNDER PROCESS\n"
+         <<separator;
+         if(!pending.empty()){
+            for(auto us : pending){
+                us->print(o);
+                o << "\n";
+            }
+        } else {
+            o << "\t\tEMPTY\n";
+        }
+    }
+
+    void DataHandler::printUnsolved(ostream& o){
+        o << separator
+         <<"UNSOLVED pending\n"
+         <<separator;
+        if(!unsolved.empty()){
+
+            for(auto s : unsolved){
+                s->print(o);
+                o << "\n";
+            }
+        } else {
+            o << "\t\tEMPTY\n";
+        }
+    }
+
+    void DataHandler::printRequests(ostream& o){
+        printPending(o);
+        printSolutions(o);
+        printUnsolved(o);
+    }
+
+    void DataHandler::print(ostream& o){
+        printCities(o);
+        printRequests(o);
+        printOperations(o);
+    }
+
+    void DataHandler::printOperations(ostream& o){
+         o << separator
+         <<"OPERATIONS\n";
+        auto copy = operations;
+        while(!copy.empty()){
+            copy.top().print(o);
+            copy.pop();
+        }
+    }
+
+
 #endif // DATA_IO_H_INCLUDED

@@ -32,119 +32,6 @@ struct DataHandler{
     using c = shared_ptr<Container>;
     using e = shared_ptr<edge>;
 
-
-
-    ///REQUESTS
-    long unsigned total = 0;
-    long unsigned processed = 0;
-    list<c> pending;
-    list<c> solved;
-    list<c> unsolved;
-
-    priority_queue<Operation> operations;
-
-    size_t num_of_ships = 0;
-    unordered_map<string, city > cities;
-
-    int getClientPercent(){
-        return 100 * (solved.size()+unsolved.size())/
-                (solved.size()+unsolved.size()+pending.size());
-    }
-
-    double getLoadPercent(){
-        return 100 * processed/total;
-    }
-
-
-
-    float getLoadProgress(){
-        return processed/float(total);
-    }
-
-    inline void reservePath(shared_ptr<Container> client){
-        client -> travelTime = 0;
-        for(auto& e : client->travelPath){
-                client->travelTime += e->getDist(client->travelTime);
-                e->reserve(client->stack_size);
-                operations.emplace(client, e);
-        }
-    }
-
-
-    void printCities(ostream& o){
-        o << separator
-         <<"CITIES\n";
-        for(auto& vertex : cities){
-            o << separator
-             <<vertex.first<<"\n";
-            vertex.second.print(o);
-        }
-    }
-    void printSolutions(ostream& o){
-        o << separator
-         <<"SOLVED REQUESTS\n"
-         <<separator;
-        if(!solved.empty()){
-
-            for(auto s : solved){
-                s->print(o);
-                o << "\n";
-            }
-        } else {
-            o << "\t\tEMPTY\n";
-        }
-    }
-    void printPending(ostream& o){
-        o << separator
-         <<"REQUESTS UNDER PROCESS\n"
-         <<separator;
-         if(!pending.empty()){
-            for(auto us : pending){
-                us->print(o);
-                o << "\n";
-            }
-        } else {
-            o << "\t\tEMPTY\n";
-        }
-    }
-
-    void printUnsolved(ostream& o){
-        o << separator
-         <<"UNSOLVED pending\n"
-         <<separator;
-        if(!unsolved.empty()){
-
-            for(auto s : unsolved){
-                s->print(o);
-                o << "\n";
-            }
-        } else {
-            o << "\t\tEMPTY\n";
-        }
-    }
-
-    void printRequests(ostream& o){
-        printPending(o);
-        printSolutions(o);
-        printUnsolved(o);
-    }
-
-    void print(ostream& o){
-        printCities(o);
-        printRequests(o);
-        printOperations(o);
-    }
-
-    void printOperations(ostream& o){
-         o << separator
-         <<"OPERATIONS\n";
-        auto copy = operations;
-        while(!copy.empty()){
-            copy.top().print(o);
-            copy.pop();
-        }
-    }
-
     void insert(const string& From, const string& To,
                 const string& ID, const size_t& capac,
                 const unsigned& length, const unsigned& back_length,
@@ -165,6 +52,57 @@ struct DataHandler{
         ++num_of_ships;
 
     };
+
+    inline void reservePath(shared_ptr<Container> client){
+        client -> travelTime = 0;
+        for(auto& e : client->travelPath){
+                client->travelTime += e->getDist(client->travelTime);
+                e->reserve(client->stack_size);
+                operations.emplace(client, e);
+        }
+    }
+
+    ///REQUESTS
+    long unsigned total = 0;
+    long unsigned processed = 0;
+    list<c> pending;
+    list<c> solved;
+    list<c> unsolved;
+
+    priority_queue<Operation> operations;
+
+    size_t num_of_ships = 0;
+    unordered_map<string, city > cities;
+
+
+
+    ///STATUS QUERIES
+    ///IMPLEMENTATION IN "data_io.h"
+    float getClientPercent();
+
+    float getLoadPercent();
+
+
+
+    float getLoadProgress();
+
+
+
+
+    void printCities(ostream& o);
+
+    void printSolutions(ostream& o);
+
+    void printPending(ostream& o);
+
+    void printUnsolved(ostream& o);
+
+    void printRequests(ostream& o);
+
+    void print(ostream& o);
+
+    void printOperations(ostream& o);
+
 
     inline city& operator[] (const string& cityIndex) {return cities[cityIndex];}
 

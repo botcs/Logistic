@@ -290,3 +290,40 @@
 
 1450861395 c:\users\anya\documents\csabi\logistic\data_classes.h
 
+1451476657 source:c:\workstation\logistic\main.cpp
+	<iostream>
+	"instance.h"
+	<ctime>
+
+1451476126 c:\workstation\logistic\path_find.h
+	"data_io.h"
+
+1451475669 c:\workstation\logistic\data_io.h
+	"data_handler.h"
+	<windows.h>
+	<chrono>
+
+1451475695 c:\workstation\logistic\data_handler.h
+	<iostream>
+	<vector>
+	<fstream>
+	<unordered_map>
+	<map>
+	<memory>
+	<queue>
+	<string>
+	<sstream>
+	<list>
+	<queue>
+	<algorithm>
+	<stdexcept>
+	<stack>
+	<set>
+	<iomanip>
+	"data_classes.h"
+
+1451406531 c:\workstation\logistic\data_classes.h
+
+1451476741 c:\workstation\logistic\instance.h
+	"path_find.h"
+
