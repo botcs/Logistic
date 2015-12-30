@@ -5,7 +5,6 @@
 class PathHandler
 {
     DataHandler& DATA;
-    bool showProcess = false;
     ostream& log;
 
     using c = shared_ptr<Container>;
@@ -55,7 +54,8 @@ class PathHandler
 
 public:
 
-    PathHandler(DataHandler& _DATA, ostream& _log = cout) : DATA(_DATA), log(_log){}
+    bool showProcess = false;
+    PathHandler(DataHandler& _DATA, ostream& _log) : DATA(_DATA), log(_log){}
     unsigned long stepsTotal = 0;
 
     void printNodes(ostream& o){
@@ -109,7 +109,7 @@ public:
         if(nodes[client->To].state != node::valid){
             Fringe.put(client->From, 0);
             nodes[client->From].state = node::visited;
-            if(!findHeuresticPath(client->To, client->bonusTime)){
+            if(!findHeuresticPath(client->To, client->bonusTime, showProcess)){
                 return false;
             }
         }

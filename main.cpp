@@ -8,17 +8,29 @@ using namespace std;
 #include "instance.h"
 
 #include <ctime>
-int main()
+int main(int argc, char* argv[])
 {
+
+    unordered_map<const char*, const char*> options;
+
+    options["-ship"] = "menetrend.txt";
+    options["-cont"] = "rakomany.txt";
+
+    for(int i = 0; i < argc; i++){
+        if(argv[i][0] == '-')
+            options[ argv[i] ] = argv[i + 1];
+    }
 
     try{
         InstanceHandler inst;
-        inst.loadData("menetrend.txt", "rakomany.txt");
-        inst.printDetail(cout);
+
+        inst.LogType(InstanceHandler::showAll);
+
+        inst.loadData(options["-ship"], options["-cont"]);
 
         inst.solveAll(true);
 
-        //inst.printContainers(cout);
+        inst.printLog(cout);
 
     }catch (exception& e)
     {

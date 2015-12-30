@@ -7,17 +7,46 @@ class InstanceHandler
 {
     using c = shared_ptr<Container>;
     DataHandler DATA;
-    ostream& log;
     PathHandler PATH;
     bool showProcess = false;
 
-    unordered_map<char*, char*> options;
+    stringstream log;
 
 public:
 
 
-    void printDetail(ostream& o){
+    enum{
+        showNothing = 'n',
+        showClient = 'c',
+        showSearch = 's',
+        showAll = 'a'
+    };
 
+    void LogType(char show_type){
+        switch (show_type)
+        {
+        case showAll :
+            PATH.showProcess = showProcess = true;
+            break;
+
+        case showClient :
+            showProcess = true;
+            break;
+
+        case showSearch :
+            PATH.showProcess = true;
+            break;
+
+        default :
+            PATH.showProcess = showProcess = false;
+        }
+    }
+
+    void printLog(ostream& o){
+        o << log.str();
+    }
+
+    void printDetail(ostream& o){
         o<<"\nRecords: \n";
         DATA.print(o);
     }
@@ -43,8 +72,7 @@ public:
     }
 
 
-    InstanceHandler(ostream& logOutput = cout) : log (logOutput), PATH(DATA){
-    }
+    InstanceHandler() : PATH(DATA, log){log << "INSTANCE CREATED AT: " << this << '\n';}
 
     void loadData(const char* ship_file, const char* cargo_file){
         dataReader(ship_file, cargo_file, DATA);

@@ -83,7 +83,7 @@ public:
 
             const size_t pos = barWidth * percent_done;
             setTextWhite();
-            cout << "[";
+            cout << "\r[";
             for (size_t i = 0; i < barWidth; ++i){
                 if (i < pos){
                     setTextGreen();
@@ -102,7 +102,7 @@ public:
             cout << fixed << setprecision(2) << percent_done * 100 << "% ";
 
             setTextGreen();
-            std::cout << "ETL: " << minutes_left.count() << "m " << seconds_left.count() << "s        \r";
+            std::cout << "ETL: " << minutes_left.count() << "m " << seconds_left.count() << "s        ";
             cout.flush();
         }
 
@@ -111,6 +111,7 @@ public:
     ~progressBar()
     {
         setTextDef();
+        cout << endl;
     }
 private:
 
