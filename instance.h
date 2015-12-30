@@ -71,7 +71,8 @@ public:
             }
             solveTopClient();
         }
-
+        PB.refresh();
+        log << "\nProcessing terminated successfully\n";
     }
 
     void solveAll(){
