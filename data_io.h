@@ -136,7 +136,7 @@ public:
     void loadCont(const char* file_name, DataHandler& data){
         ifstream infile (file_name);
         if(!infile){
-            string exc = "wrong filename: ";
+            string exc = "Cannot open file: ";
             exc+= file_name;
             exc+= "\n";
             throw logic_error(exc);
@@ -223,7 +223,7 @@ public:
         int  capac, to, back, phase;
 
         if(!infile){
-            string exc = "wrong filename: ";
+            string exc = "Cannot open file: ";
             exc+= file_name;
             exc+= "\n";
             throw logic_error(exc);

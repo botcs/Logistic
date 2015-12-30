@@ -70,7 +70,7 @@ struct Container{
     string To;
     unsigned bonusTime;
 
-    size_t stack_size;
+    size_t stackSize;
 
     unsigned travelTime = container_default_phase;
 
@@ -95,15 +95,15 @@ struct Container{
       ///considers itself solved for a given size,
       ///and throws back a ptr to a remainder
       ///with clear history
-      if(unload >= stack_size)
+      if(unload >= stackSize)
         return NULL;
       shared_ptr<Container> remainder = make_shared<Container>();
       remainder->ID = ID;
       remainder->From = From;
       remainder->To = To;
       remainder->bonusTime = bonusTime;
-      remainder->stack_size = stack_size - unload;
-      stack_size = unload;
+      remainder->stackSize = stackSize - unload;
+      stackSize = unload;
       return remainder;
     }
 
@@ -115,7 +115,7 @@ struct Container{
         ///the history of the solved stack will not be
         ///stored on the level of Containers, but can be recovered from
         ///the Operations
-        stack_size -= unload;
+        stackSize -= unload;
         clear();
         returned = false;
     }
@@ -124,14 +124,14 @@ struct Container{
     Container(const string& i, const string& f,
               const string& to, const unsigned& ti,
               const size_t& size):
-                  ID(i), From(f), To(to), bonusTime(ti), stack_size(size){}
+                  ID(i), From(f), To(to), bonusTime(ti), stackSize(size){}
 
 
 
     void print(ostream& o)const{
 
         o << '{' << ID << '}'
-          << "\n\tWith stack size: " << stack_size
+          << "\n\tWith stack size: " << stackSize
           << "\n\tadressed with bonus Time: " << bonusTime
           << "\n\tFrom: " << From
           << "\n\tTo: " << To << "\n";
@@ -213,7 +213,7 @@ struct Operation
     unsigned amount;
 
     Operation(const shared_ptr<Container> client, const shared_ptr<edge> incoming):
-        cont_ID(client->ID), ship_ID(incoming->ID), amount(client->stack_size)
+        cont_ID(client->ID), ship_ID(incoming->ID), amount(client->stackSize)
     {
         day = client->travelTime - incoming->length;
         bonus_address = client->bonusTime - day;

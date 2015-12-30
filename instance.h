@@ -16,10 +16,10 @@ public:
 
 
     enum{
-        showNothing = 'n',
-        showClient = 'c',
-        showSearch = 's',
-        showAll = 'a'
+        showNothing,
+        showClient,
+        showSearch,
+        showAll
     };
 
     void LogType(char show_type){
@@ -72,6 +72,8 @@ public:
     }
 
 
+
+
     InstanceHandler() : PATH(DATA, log){log << "INSTANCE CREATED AT: " << this << '\n';}
 
     void loadData(const char* ship_file, const char* cargo_file){
@@ -88,10 +90,12 @@ public:
             auto currClient = DATA.pending.front();
 
             if(showProcess){
-                log << "\n PROGRESS: " << DATA.getLoadProgress() << "% \t"
+                log << separator << separator
+                    << "CURRENT CLIENT: "
+                    << "\n PROGRESS: "
+                    << DATA.getClientPercent()<< "% \t"
                     << DATA.processed << " / "
-                    << DATA.total << "\n\n" << separator << separator
-                    << "CURRENT CLIENT: ";
+                    << DATA.total << "\n\n" ;
                 currClient->print(log);
                 log << separator << separator << separator;
             } else {
@@ -137,7 +141,7 @@ public:
         } else
             DATA.unsolved.push_back(currClient);
 
-        DATA.processed += currClient -> stack_size;
+        DATA.processed += currClient -> stackSize;
     }
 
 

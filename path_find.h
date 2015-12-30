@@ -60,7 +60,7 @@ public:
 
     void printNodes(ostream& o){
         o<<"\n\tMAPPED NODES \n";
-        o<<separator;
+        o<<"-------------------------------------\n";
         for(auto n : nodes){
             o <<  n.first << "\t";
             auto& c = n.second;
@@ -77,7 +77,7 @@ public:
 
     void printFringe(ostream& o){
         o<<"\n\tFRINGE\n";
-        o<<separator;
+        o<<"-------------------------------------\n";
         auto cp = Fringe.elements;
         while(!cp.empty()){
             o << cp.top().first<<'\t'<<cp.top().second<<'\n';
@@ -106,6 +106,7 @@ public:
         #endif
 
         //Valid  =  knows the shortest path to itself
+        printNodes(cout);
         if(nodes[client->To].state != node::valid){
             Fringe.put(client->From, 0);
             nodes[client->From].state = node::visited;
@@ -131,8 +132,11 @@ public:
             auto currMax = curr->incoming->getFreeSize();
             if(currMax<=max_load){
                 max_load = currMax;
-                curr->state = node::unvisited;
-                last_invalid = curr;
+                if(client -> stackSize >= max_load){
+                    curr->state = node::unvisited;
+                    last_invalid = curr;
+                }
+
             }
             //FILL CONTAINER PATH LIST
             client->addShip(curr->incoming);
@@ -187,13 +191,13 @@ public:
      *  LOOKUPS ARE ONLY MADE ON PATHS THAT ARE OBSOLETE
      *  - OBSOLETE ~ NO FREE CAPACITY ON SHIPS
      */
+
     bool findHeuresticPath(const string& goal, const unsigned& bonus){
 
         while (!Fringe.empty()){
+            stepsTotal++;
             auto curr = Fringe.get();
             auto& curr_node = nodes[curr];
-
-
 
             if(curr_node.state == node::valid)
                 continue;
@@ -201,7 +205,12 @@ public:
             curr_node.state = node::valid;
             curr_node.children.clear();
 
-            if(curr == goal) return true;
+            if(curr == goal){
+
+                return true;
+
+            }
+
 
 
             for (auto& e : DATA[curr].getShortestEdges(curr_node.distance)){
@@ -233,15 +242,21 @@ public:
         if(!verbose) return findHeuresticPath(goal, bonus);
 
         while (!Fringe.empty()){
+            stepsTotal++;
             auto curr = Fringe.get();
             auto& curr_node = nodes[curr];
 
 
+            if(showProcess){
+                log <<  "\n\n" << separator
+                    <<"TEST VERTEX "<<curr<<"\n"
+                    <<separator;
+            }
 
             if(curr_node.state == node::valid) {
                 if(showProcess)
-                    log <<  "\n\n" << separator
-                        << "SKIPPING VALID VERTEX\n" << curr << "\n";
+                    log << "SKIPPING VALID VERTEX\n"
+                        << separator;
 
                 continue;
             }
@@ -251,20 +266,16 @@ public:
 
             if(curr == goal){
                 if(showProcess)
-                    log <<  "\n\n" << separator
-                        << "FOUND GOAL\n" << curr << "\n";
+                    log << "FOUND GOAL\n" << separator << "\n\n\n\n\n\n\n";
 
                 return true;
             }
 
             if(showProcess){
-                log <<  "\n\n" << separator
-                    <<"TEST VERTEX "<<curr<<"\n"
-                    <<separator
-                    <<"\tBEFORE VISITING NEIGHBOURS\n";
+                log <<"\tBEFORE VISITING NEIGHBOURS\n";
                 printNodes(log);
                 log << "\n\n\tNEIGHBOUR EDGES \n";
-                log << separator;
+                log << "-------------------------------------\n";
             }
 
 

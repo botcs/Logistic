@@ -290,20 +290,21 @@
 
 1450861395 c:\users\anya\documents\csabi\logistic\data_classes.h
 
-1451481510 source:c:\workstation\logistic\main.cpp
+1451489931 source:c:\workstation\logistic\main.cpp
 	<iostream>
+	<getopt.h>
 	"instance.h"
 	<ctime>
 
-1451481495 c:\workstation\logistic\path_find.h
+1451484648 c:\workstation\logistic\path_find.h
 	"data_io.h"
 
-1451481533 c:\workstation\logistic\data_io.h
+1451490100 c:\workstation\logistic\data_io.h
 	"data_handler.h"
 	<windows.h>
 	<chrono>
 
-1451475695 c:\workstation\logistic\data_handler.h
+1451483818 c:\workstation\logistic\data_handler.h
 	<iostream>
 	<vector>
 	<fstream>
@@ -322,8 +323,8 @@
 	<iomanip>
 	"data_classes.h"
 
-1451406531 c:\workstation\logistic\data_classes.h
+1451483818 c:\workstation\logistic\data_classes.h
 
-1451481494 c:\workstation\logistic\instance.h
+1451488505 c:\workstation\logistic\instance.h
 	"path_find.h"
 

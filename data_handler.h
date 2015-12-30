@@ -57,7 +57,7 @@ struct DataHandler{
         client -> travelTime = 0;
         for(auto& e : client->travelPath){
                 client->travelTime += e->getDist(client->travelTime);
-                e->reserve(client->stack_size);
+                e->reserve(client->stackSize);
                 operations.emplace(client, e);
         }
     }
