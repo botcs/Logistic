@@ -101,12 +101,15 @@ public:
         #ifdef FringeHeurestics
         if(client->From != last_source)
             resetInstance(client);
-        #else
-            resetInstance(client);
         #endif
+
+
+
 
         //Valid  =  knows the shortest path to itself
         if(nodes[client->To].state != node::valid){
+            if(client->From != last_source)
+                resetInstance(client);
             Fringe.put(client->From, 0);
             nodes[client->From].state = node::visited;
             if(!findHeuresticPath(client->To, client->bonusTime, showProcess)){
@@ -131,7 +134,8 @@ public:
         {
             helper++;
             if(helper > DATA.cities.size()){
-                client->print(cout);
+                //client->print(cout);
+                break;
             }
             auto currMax = curr->incoming->getFreeSize();
             if(currMax<=max_load){
