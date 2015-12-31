@@ -184,13 +184,17 @@
 
 1449088124 c:\users\botos\documents\logistic\data_classes.h
 
-1450770861 D
+1451495872 D
 
-1451525443 source:c:\repo\logistic\main.cpp
+1451526557 source:c:\repo\logistic\main.cpp
 	<iostream>
 	"instance.h"
 	"randomGen.h"
 	<ctime>
+
+1451524131 .h"
+
+1451515062 ent of 073aef5... useless
 
 1450771284 bb639ddcded18e26fb91343167520f72059ce
 	<iostream>
@@ -200,13 +204,15 @@
 	<windows.h>
 	<chrono>
 
-1451524131 c:\repo\logistic\path_find.h
+1451526558 c:\repo\logistic\path_find.h
 	"data_io.h"
 
 1451524131 c:\repo\logistic\data_io.h
 	"data_handler.h"
 	<windows.h>
 	<chrono>
+
+1451524131 >
 
 1451515062 c:\repo\logistic\data_handler.h
 	<iostream>
@@ -342,7 +348,7 @@
 	<vector>
 	<set>
 
-1451524131 c:\repo\logistic\instance.h
+1451526514 c:\repo\logistic\instance.h
 	"path_find.h"
 
 1451515062 c:\repo\logistic\randomgen.h
@@ -351,4 +357,6 @@
 	<sstream>
 	<vector>
 	<set>
+
+1451515062 
 

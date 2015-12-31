@@ -98,9 +98,10 @@ public:
                     << DATA.total << "\n\n" ;
                 currClient->print(log);
                 log << separator << separator << separator;
-            } else {
-                PB.refresh();
             }
+
+            PB.refresh();
+
             solveTopClient();
         }
         PB.refresh();

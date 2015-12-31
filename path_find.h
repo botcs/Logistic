@@ -96,13 +96,10 @@ public:
     }
 
     bool initPath(c client){
+
         resetInstance(client);
-
-
         //Valid  =  knows the shortest path to itself
         if(nodes[client->To].state != node::valid){
-            if(client->From != last_source)
-                resetInstance(client);
             Fringe.put(client->From, 0);
             nodes[client->From].state = node::visited;
             if(!findHeuresticPath(client->To, client->bonusTime, showProcess)){
@@ -122,8 +119,14 @@ public:
         node* last_invalid = nullptr;
         node* curr = &nodes[goal];
         size_t max_load = -1;
+        size_t helper = 0;
         while(curr -> parent)
         {
+            helper++;
+            if(helper > DATA.cities.size()){
+                //client->print(cout);
+                break;
+            }
             auto currMax = curr->incoming->getFreeSize();
             if(currMax<=max_load){
                 max_load = currMax;
@@ -148,45 +151,12 @@ public:
         //IF ONE OF THE SHIPS GETS FULL
         if(last_invalid){
             last_valid = last_invalid->parent->ID;
-            #ifdef FringeHeurestics
-
-                Fringe.clear();
-                addLeavesToFringe(last_invalid->parent);
-            #endif // FringeHeurestics
         }
 
         if(remainder){
             DATA.pending.push_front(remainder);
         }
     }
-    #ifdef FringeHeurestics
-    bool addLeavesToFringe(node* root, int indent = 0){
-        if(root->state != node::unvisited){
-            bool hasValidLeaf = false;
-            for(auto& child : root->children)
-                if(addLeavesToFringe(child, indent+1)) hasValidLeaf = true;
-            if(!hasValidLeaf){
-                //IF A NODE IS VALID, THEN THE PATHFINDER WILL SKIP
-
-                root->state = node::visited;
-                Fringe.put(root->ID, root->distance);
-                return true;
-            }
-        }
-
-        return false;
-    }
-    #endif // FringeHeurestics
-
-    ///HEURESTICS ARE THE FOLLOWING:
-    /**
-     *  IF A THE GOAL IS FOUND WITHIN THE BONUS TIME,
-     *  NO FURTHER LOOKUPS ARE MADE
-     *
-     *  IF COMPILED WITH \FringeHeurestics\ SWITCH ON,
-     *  LOOKUPS ARE ONLY MADE ON PATHS THAT ARE OBSOLETE
-     *  - OBSOLETE ~ NO FREE CAPACITY ON SHIPS
-     */
 
     bool findHeuresticPath(const string& goal, const unsigned& bonus){
 
@@ -216,11 +186,11 @@ public:
                 if(neighbour.state == node::unvisited ||
                     (neighbour.state == node::visited && neighbour.distance > nb_dist)){
                     ///SHORTCUT IF A SOLUTION FOUND
-                    #ifndef FringeHeurestics
+
                     if(e.first->To == goal && bonus >= nb_dist)
                         Fringe.put(e.first->To, 0);
                     else
-                    #endif
+
                         Fringe.put(e.first->To, nb_dist);
 
                     neighbour.ID       = e.first->To;
@@ -284,11 +254,10 @@ public:
                 if(neighbour.state == node::unvisited ||
                     (neighbour.state == node::visited && neighbour.distance > nb_dist)){
                     ///SHORTCUT IF A SOLUTION FOUND
-                    #ifndef FringeHeurestics
+
                     if(e.first->To == goal && bonus >= nb_dist)
                         Fringe.put(e.first->To, 0);
                     else
-                    #endif // FringeHeurestics
                         Fringe.put(e.first->To, nb_dist);
 
                     neighbour.ID       = e.first->To;
