@@ -97,7 +97,9 @@ public:
 
     bool initPath(c client){
 
-        resetInstance(client);
+         if(last_valid != client->To)
+            resetInstance(client);
+
         //Valid  =  knows the shortest path to itself
         if(nodes[client->To].state != node::valid){
             Fringe.put(client->From, 0);
